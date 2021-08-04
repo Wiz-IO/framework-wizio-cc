@@ -1,0 +1,7 @@
+{
+    "name": "framework-wizio-cc",
+    "description": "Framework for TI CC2652 2021 Georgi Angelov",
+    "url": "https://github.com/Wiz-IO/framework-wizio-cc",
+    "system": "*",
+    "version": "1.0.0"
+}
