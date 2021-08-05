@@ -106,6 +106,11 @@ extern "C"
 
 #include <driverlib/ioc.h>
 
+    static inline void digitalToggle(uint8_t pin)
+    { // protect?
+        GPIO_toggleDio(pin);
+    }
+
     static inline void digitalWrite(uint8_t pin, uint8_t val)
     { // protect?
         GPIO_writeDio(pin, val);
