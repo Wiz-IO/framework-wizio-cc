@@ -49,8 +49,47 @@ extern "C"
 
 #define INLINE inline __attribute__((always_inline))
 
-#define ENTER_CRITICAL() /*TODO*/
-#define EXIT_CRITICAL()  /*TODO*/
+    __attribute__((always_inline)) __STATIC_INLINE void __enable_irq(void)
+    {
+        __asm volatile("cpsie i" : : : "memory");
+    }
+
+    __attribute__((always_inline)) __STATIC_INLINE void __disable_irq(void)
+    {
+        __asm volatile("cpsid i" : : : "memory");
+    }
+
+    __attribute__((always_inline)) __STATIC_INLINE uint32_t __get_PRIMASK(void)
+    {
+        uint32_t result;
+        __asm volatile("MRS %0, primask" : "=r"(result));
+        return (result);
+    }
+
+    __attribute__((always_inline)) __STATIC_INLINE void __set_PRIMASK(uint32_t priMask)
+    {
+        __asm volatile("MSR primask, %0"
+                       :
+                       : "r"(priMask)
+                       : "memory");
+    }
+
+    __attribute__((always_inline)) __STATIC_INLINE uint32_t enter_critical(void)
+    {
+        uint32_t primask = __get_PRIMASK();
+        __disable_irq();
+        return primask;
+    }
+
+    __attribute__((always_inline)) __STATIC_INLINE void exit_critical(uint32_t primask)
+    {
+        __set_PRIMASK(primask);
+        __enable_irq();
+    }
+
+#define ENTER_CRITICAL(PRIM) PRIM = enter_critical()
+#define EXIT_CRITICAL(PRIM) exit_critical(PRIM)
+
     void interrupts(void);
     void noInterrupts(void);
 

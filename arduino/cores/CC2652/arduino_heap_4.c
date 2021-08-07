@@ -53,8 +53,8 @@
 #define traceFREE(_x, _y)
 #define configASSERT(_x) assert(_x)
 
-#define vTaskSuspendAll() ENTER_CRITICAL() /* __disable_irq() */
-#define xTaskResumeAll() EXIT_CRITICAL()   /* __enable_irq()  */
+#define vTaskSuspendAll() noInterrupts()
+#define xTaskResumeAll()  interrupts()
 
 //////////////////////////////////////////////////////////////////////////////////////
 

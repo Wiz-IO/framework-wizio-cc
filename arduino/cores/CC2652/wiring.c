@@ -76,16 +76,18 @@ void detachInterrupt(uint8_t pin)
 {
 }
 
+////////////////////////////////////////////////////////////////////////////////////////
+
 static uint32_t arduino_lock;
 
 inline void interrupts(void)
 {
-    //arduino_lock = CORE_EnterAtomic();
+    exit_critical(arduino_lock);
 }
 
 inline void noInterrupts(void)
 {
-    //CORE_ExitAtomic(arduino_lock);
+    arduino_lock = enter_critical();
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////
