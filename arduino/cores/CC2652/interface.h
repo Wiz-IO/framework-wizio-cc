@@ -51,18 +51,25 @@ extern "C"
 
     __attribute__((always_inline)) __STATIC_INLINE void __enable_irq(void)
     {
-        __asm volatile("cpsie i" : : : "memory");
+        __asm volatile("cpsie i"
+                       :
+                       :
+                       : "memory");
     }
 
     __attribute__((always_inline)) __STATIC_INLINE void __disable_irq(void)
     {
-        __asm volatile("cpsid i" : : : "memory");
+        __asm volatile("cpsid i"
+                       :
+                       :
+                       : "memory");
     }
 
     __attribute__((always_inline)) __STATIC_INLINE uint32_t __get_PRIMASK(void)
     {
         uint32_t result;
-        __asm volatile("MRS %0, primask" : "=r"(result));
+        __asm volatile("MRS %0, primask"
+                       : "=r"(result));
         return (result);
     }
 
@@ -201,6 +208,9 @@ extern "C"
                        : "r"(value));
         return (result);
     }
+
+    void dmp_buf(const char *text, const unsigned char *buf, unsigned int len);
+#define DUMP(T, B, L) dmp_buf(T, (const unsigned char *)B, L) /* use printf() */
 
 #ifdef __cplusplus
 }
