@@ -1,6 +1,30 @@
 #include <stdint.h>
 #include "ot_radio.h"
 
+/* CALLBACKS
+
+void otPlatRadioEnergyScanDone(int8_t aEnergyScanMaxRssi)
+{
+    printf("[RADIO] %s()\n", __func__);
+}
+
+void otPlatRadioReceiveDone(otRadioFrame *aFrame, otError aError)
+{
+    printf("[RADIO] %s()\n", __func__);
+}
+
+void otPlatRadioTxStarted(otRadioFrame *aFrame)
+{
+    printf("[RADIO] %s()\n", __func__);
+}
+
+void otPlatRadioTxDone(otRadioFrame *aFrame, otRadioFrame *aAckFrame, otError aError)
+{
+    printf("[RADIO] %s( %d )\n", __func__, (int)aError);
+}
+
+*/
+
 class Radio
 {
 public:
@@ -46,7 +70,6 @@ public:
         if (OT_ERROR_NONE == otPlatRadioEnable())
             if (OT_ERROR_NONE == otPlatRadioReceive(aChannel))
                 return true;
-        //::printf("[ERROR] Radio.begin()\n");
         return false;
     }
 };
