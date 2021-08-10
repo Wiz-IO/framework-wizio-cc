@@ -36,19 +36,10 @@
 
 #include <stdlib.h>
 #include "sysTimer.h"
-////#include "halTimer.h"
 
-/*****************************************************************************
-*****************************************************************************/
-// ETG To make AVR Studio happy
 void sysTimerTaskHandler(void);
-
-/*****************************************************************************
-*****************************************************************************/
 static SYS_Timer_t *timers = NULL;
 
-/*****************************************************************************
-*****************************************************************************/
 static void placeTimer(SYS_Timer_t *timer)
 {
   if (timers)
@@ -90,8 +81,6 @@ static void placeTimer(SYS_Timer_t *timer)
   }
 }
 
-/*****************************************************************************
-*****************************************************************************/
 void sysTimerTaskHandler(void)
 {
   extern uint32_t msTicks;
@@ -110,23 +99,23 @@ void sysTimerTaskHandler(void)
     timers = timers->next;
     if (SYS_TIMER_PERIODIC_MODE == timer->mode)
       placeTimer(timer);
-    timer->handler(timer);
+
+    if (timer->handler)
+    {
+      timer->handler(timer);
+    }
   }
 
   if (timers)
     timers->timeout -= elapsed;
 }
 
-/*****************************************************************************
-*****************************************************************************/
 void SYS_TimerStart(SYS_Timer_t *timer)
 {
   if (!SYS_TimerStarted(timer))
     placeTimer(timer);
 }
 
-/*****************************************************************************
-*****************************************************************************/
 void SYS_TimerStop(SYS_Timer_t *timer)
 {
   SYS_Timer_t *prev = NULL;
@@ -149,8 +138,6 @@ void SYS_TimerStop(SYS_Timer_t *timer)
   }
 }
 
-/*****************************************************************************
-*****************************************************************************/
 bool SYS_TimerStarted(SYS_Timer_t *timer)
 {
   for (SYS_Timer_t *t = timers; t; t = t->next)
@@ -159,8 +146,6 @@ bool SYS_TimerStarted(SYS_Timer_t *timer)
   return false;
 }
 
-/*****************************************************************************
-*****************************************************************************/
 void SYS_TimerRestart(SYS_Timer_t *timer)
 {
   if (SYS_TimerStarted(timer))

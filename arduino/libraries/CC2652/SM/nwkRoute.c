@@ -43,48 +43,36 @@
 #include "sysTimer.h"
 #include "sysTypes.h"
 
-/*****************************************************************************
-*****************************************************************************/
-#define NWK_ROUTE_UNKNOWN         0xffff
-#define NWK_ROUTE_TRANSIT_MASK    0x8000
+#define NWK_ROUTE_UNKNOWN 0xffff
+#define NWK_ROUTE_TRANSIT_MASK 0x8000
 
-/*****************************************************************************
-*****************************************************************************/
 typedef struct PACK NwkRouteErrorCommand_t
 {
-  uint8_t    id;
-  uint16_t   srcAddr;
-  uint16_t   dstAddr;
+  uint8_t id;
+  uint16_t srcAddr;
+  uint16_t dstAddr;
 } NwkRouteErrorCommand_t;
 
 typedef struct NwkRouteTableRecord_t
 {
-  uint16_t   dst;
-  uint16_t   nextHop;
-  uint8_t    score;
-  uint8_t    lqi;
+  uint16_t dst;
+  uint16_t nextHop;
+  uint8_t score;
+  uint8_t lqi;
 } NwkRouteTableRecord_t;
 
-/*****************************************************************************
-*****************************************************************************/
 static void nwkRouteTxFrameConf(NwkFrame_t *frame);
 static void nwkRouteSendRouteError(uint16_t src, uint16_t dst);
 static void nwkRouteErrorConf(NwkFrame_t *frame);
 
-/*****************************************************************************
-*****************************************************************************/
 static NwkRouteTableRecord_t nwkRouteTable[NWK_ROUTE_TABLE_SIZE];
 
-/*****************************************************************************
-*****************************************************************************/
 void nwkRouteInit(void)
 {
   for (uint8_t i = 0; i < NWK_ROUTE_TABLE_SIZE; i++)
     nwkRouteTable[i].dst = NWK_ROUTE_UNKNOWN;
 }
 
-/*****************************************************************************
-*****************************************************************************/
 static NwkRouteTableRecord_t *nwkRouteFindRecord(uint16_t dst)
 {
   for (uint8_t i = 0; i < NWK_ROUTE_TABLE_SIZE; i++)
@@ -97,8 +85,6 @@ static NwkRouteTableRecord_t *nwkRouteFindRecord(uint16_t dst)
   return NULL;
 }
 
-/*****************************************************************************
-*****************************************************************************/
 void nwkRouteRemove(uint16_t dst)
 {
   NwkRouteTableRecord_t *rec;
@@ -108,8 +94,6 @@ void nwkRouteRemove(uint16_t dst)
     rec->dst = NWK_ROUTE_UNKNOWN;
 }
 
-/*****************************************************************************
-*****************************************************************************/
 void nwkRouteFrameReceived(NwkFrame_t *frame)
 {
   NwkFrameHeader_t *header = frame->header;
@@ -142,8 +126,6 @@ void nwkRouteFrameReceived(NwkFrame_t *frame)
   (void)frame;
 }
 
-/*****************************************************************************
-*****************************************************************************/
 void nwkRouteFrameSent(NwkFrame_t *frame)
 {
   NwkRouteTableRecord_t *rec;
@@ -177,8 +159,6 @@ void nwkRouteFrameSent(NwkFrame_t *frame)
   }
 }
 
-/*****************************************************************************
-*****************************************************************************/
 uint16_t nwkRouteNextHop(uint16_t dst)
 {
   for (uint8_t i = 0; i < NWK_ROUTE_TABLE_SIZE; i++)
@@ -188,8 +168,6 @@ uint16_t nwkRouteNextHop(uint16_t dst)
   return NWK_ROUTE_UNKNOWN;
 }
 
-/*****************************************************************************
-*****************************************************************************/
 void nwkRouteFrame(NwkFrame_t *frame)
 {
   if (NWK_ROUTE_UNKNOWN != nwkRouteNextHop(frame->header->nwkDstAddr))
@@ -204,15 +182,11 @@ void nwkRouteFrame(NwkFrame_t *frame)
   }
 }
 
-/*****************************************************************************
-*****************************************************************************/
 static void nwkRouteTxFrameConf(NwkFrame_t *frame)
 {
   nwkFrameFree(frame);
 }
 
-/*****************************************************************************
-*****************************************************************************/
 static void nwkRouteSendRouteError(uint16_t src, uint16_t dst)
 {
   NwkFrame_t *frame;
@@ -236,15 +210,11 @@ static void nwkRouteSendRouteError(uint16_t src, uint16_t dst)
   nwkTxFrame(frame);
 }
 
-/*****************************************************************************
-*****************************************************************************/
 static void nwkRouteErrorConf(NwkFrame_t *frame)
 {
   nwkFrameFree(frame);
 }
 
-/*****************************************************************************
-*****************************************************************************/
 void nwkRouteErrorReceived(NWK_DataInd_t *ind)
 {
   NwkRouteErrorCommand_t *command = (NwkRouteErrorCommand_t *)ind->data;
@@ -255,10 +225,7 @@ void nwkRouteErrorReceived(NWK_DataInd_t *ind)
   nwkRouteRemove(command->dstAddr);
 }
 
-/*****************************************************************************
-*****************************************************************************/
 uint16_t NWK_RouteNextHop(uint16_t dst)
 {
   return nwkRouteNextHop(dst);
 }
-

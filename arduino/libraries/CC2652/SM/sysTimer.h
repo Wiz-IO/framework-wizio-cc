@@ -40,8 +40,6 @@
 #include <stdint.h>
 #include <stdbool.h>
 
-/*****************************************************************************
-*****************************************************************************/
 typedef enum SYS_TimerMode_t
 {
   SYS_TIMER_INTERVAL_MODE = 0xac,
@@ -60,8 +58,6 @@ typedef struct SYS_Timer_t
   void                 (*handler)(struct SYS_Timer_t *timer);
 } SYS_Timer_t;
 
-/*****************************************************************************
-*****************************************************************************/
 void SYS_TimerStart(SYS_Timer_t *timer);
 void SYS_TimerStop(SYS_Timer_t *timer);
 bool SYS_TimerStarted(SYS_Timer_t *timer);

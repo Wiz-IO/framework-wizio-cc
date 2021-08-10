@@ -38,14 +38,11 @@
 #include <stdint.h>
 #include <stdbool.h>
 #include <string.h>
-#include <stdio.h>
 #include "nwkPrivate.h"
 #include "sysTaskManager.h"
 #include "sysMem.h"
 #include "sysQueue.h"
 
-/*****************************************************************************
-*****************************************************************************/
 enum
 {
   NWK_DATA_REQ_STATE_INITIAL,
@@ -53,28 +50,15 @@ enum
   NWK_DATA_REQ_STATE_CONFIRM,
 };
 
-/*****************************************************************************
-*****************************************************************************/
-// ETG To make AVR Studio happy
 void nwkDataReqTaskHandler(void);
-
-/*****************************************************************************
-*****************************************************************************/
 static void nwkDataReqTxConf(NwkFrame_t *frame);
-
-/*****************************************************************************
-*****************************************************************************/
 static SYS_Queue_t *nwkDataReqQueue;
 
-/*****************************************************************************
-*****************************************************************************/
 void nwkDataReqInit(void)
 {
   SYS_QueueInit(&nwkDataReqQueue);
 }
 
-/*****************************************************************************
-*****************************************************************************/
 void NWK_DataReq(NWK_DataReq_t *req)
 {
   req->state = NWK_DATA_REQ_STATE_INITIAL;
@@ -83,8 +67,6 @@ void NWK_DataReq(NWK_DataReq_t *req)
   SYS_TaskSet(NWK_DATA_REQ_TASK);
 }
 
-/*****************************************************************************
-*****************************************************************************/
 static void nwkDataReqSendFrame(NWK_DataReq_t *req)
 {
   NwkFrame_t *frame;
@@ -117,8 +99,6 @@ static void nwkDataReqSendFrame(NWK_DataReq_t *req)
   nwkTxFrame(frame);
 }
 
-/*****************************************************************************
-*****************************************************************************/
 static void nwkDataReqTxConf(NwkFrame_t *frame)
 {
   frame->tx.dataReq->status = frame->tx.status;
@@ -127,8 +107,6 @@ static void nwkDataReqTxConf(NwkFrame_t *frame)
   SYS_TaskSet(NWK_DATA_REQ_TASK);
 }
 
-/*****************************************************************************
-*****************************************************************************/
 void nwkDataReqTaskHandler(void)
 {
   NWK_DataReq_t *req, *next;
@@ -136,30 +114,31 @@ void nwkDataReqTaskHandler(void)
   req = SYS_QueueHead(&nwkDataReqQueue);
   while (req)
   {
-    next = (NWK_DataReq_t *) SYS_QueueNext((void *) req);
+    next = (NWK_DataReq_t *)SYS_QueueNext((void *)req);
 
     switch (req->state)
     {
-      case NWK_DATA_REQ_STATE_INITIAL:
-      {
-        req->state = NWK_DATA_REQ_STATE_WAIT_CONF;
-        nwkDataReqSendFrame(req);
-      } break;
+    case NWK_DATA_REQ_STATE_INITIAL:
+    {
+      req->state = NWK_DATA_REQ_STATE_WAIT_CONF;
+      nwkDataReqSendFrame(req);
+    }
+    break;
 
-      case NWK_DATA_REQ_STATE_WAIT_CONF:
-        break;
+    case NWK_DATA_REQ_STATE_WAIT_CONF:
+      break;
 
-      case NWK_DATA_REQ_STATE_CONFIRM:
-      {
-        SYS_QueueRemove(&nwkDataReqQueue, req);
-        req->confirm(req);
-      } break;
+    case NWK_DATA_REQ_STATE_CONFIRM:
+    {
+      SYS_QueueRemove(&nwkDataReqQueue, req);
+      req->confirm(req);
+    }
+    break;
 
-      default:
-        break;
+    default:
+      break;
     };
 
     req = next;
   }
 }
-

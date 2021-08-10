@@ -41,12 +41,8 @@ extern "C" {
 #endif
 
 #include <stdint.h>
-////#include "config.h"
 #include "sysTypes.h"
-////#include "hal.h"
 
-/*****************************************************************************
-*****************************************************************************/
 typedef enum
 {
   PHY_TASK,
@@ -57,12 +53,8 @@ typedef enum
   SYS_PORT_TASK,
 } SYS_TaskId_t;
 
-/*****************************************************************************
-*****************************************************************************/
 extern volatile uint16_t sysTasksPending;
 
-/*****************************************************************************
-*****************************************************************************/
 static inline void SYS_TaskSetInline(SYS_TaskId_t id)
 {
   ATOMIC_SECTION_ENTER
@@ -70,8 +62,6 @@ static inline void SYS_TaskSetInline(SYS_TaskId_t id)
   ATOMIC_SECTION_LEAVE
 }
 
-/*****************************************************************************
-*****************************************************************************/
 void SYS_TaskSet(SYS_TaskId_t id);
 void SYS_PortSet(uint8_t port);
 void SYS_PortTaskRegister(uint8_t port, void (*handler)(void));

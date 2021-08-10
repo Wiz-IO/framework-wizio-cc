@@ -46,8 +46,6 @@
 #include "sysTimer.h"
 #include "sysTaskManager.h"
 
-/*****************************************************************************
-*****************************************************************************/
 enum
 {
   NWK_RX_STATE_RECEIVED,
@@ -60,37 +58,29 @@ enum
 
 enum
 {
-  NWK_RX_SLEEP_REQUEST   = 1 << 0,
-  NWK_RX_WAKEUP_REQUEST  = 1 << 1,
-  NWK_RX_NO_REQUESTS     = 0,
+  NWK_RX_SLEEP_REQUEST = 1 << 0,
+  NWK_RX_WAKEUP_REQUEST = 1 << 1,
+  NWK_RX_NO_REQUESTS = 0,
 };
 
 typedef struct NwkDuplicateRejectionRecord_t
 {
-  uint16_t   src;
-  uint8_t    seq;
-  uint8_t    ttl;
+  uint16_t src;
+  uint8_t seq;
+  uint8_t ttl;
 } NwkDuplicateRejectionRecord_t;
 
-/*****************************************************************************
-*****************************************************************************/
 // ETG To make AVR Studio happy
 void nwkRxTaskHandler(void);
 
-/*****************************************************************************
-*****************************************************************************/
 static void nwkRxSendAckConf(NwkFrame_t *frame);
 static void nwkRxDuplicateRejectionTimerHandler(SYS_Timer_t *timer);
 
-/*****************************************************************************
-*****************************************************************************/
 static SYS_Queue_t *nwkRxQueue;
 static NwkDuplicateRejectionRecord_t nwkRxDuplicateRejectionTable[NWK_DUPLICATE_REJECTION_TABLE_SIZE];
 static SYS_Timer_t nwkRxDuplicateRejectionTimer;
 static uint8_t nwkRxRequests = NWK_RX_NO_REQUESTS;
 
-/*****************************************************************************
-*****************************************************************************/
 void nwkRxInit(void)
 {
   SYS_QueueInit(&nwkRxQueue);
@@ -107,8 +97,6 @@ void nwkRxInit(void)
   SYS_TimerStart(&nwkRxDuplicateRejectionTimer);
 }
 
-/*****************************************************************************
-*****************************************************************************/
 void PHY_DataInd(PHY_DataInd_t *ind)
 {
   NwkFrame_t *frame;
@@ -125,8 +113,6 @@ void PHY_DataInd(PHY_DataInd_t *ind)
   SYS_TaskSet(NWK_RX_TASK);
 }
 
-/*****************************************************************************
-*****************************************************************************/
 static void nwkRxSendAck(NwkFrame_t *frame)
 {
   NwkFrame_t *ackFrame;
@@ -146,15 +132,11 @@ static void nwkRxSendAck(NwkFrame_t *frame)
   nwkTxFrame(ackFrame);
 }
 
-/*****************************************************************************
-*****************************************************************************/
 static void nwkRxSendAckConf(NwkFrame_t *frame)
 {
   nwkFrameFree(frame);
 }
 
-/*****************************************************************************
-*****************************************************************************/
 static void nwkRxDuplicateRejectionTimerHandler(SYS_Timer_t *timer)
 {
   for (uint8_t i = 0; i < NWK_DUPLICATE_REJECTION_TABLE_SIZE; i++)
@@ -165,8 +147,6 @@ static void nwkRxDuplicateRejectionTimerHandler(SYS_Timer_t *timer)
   (void)timer;
 }
 
-/*****************************************************************************
-*****************************************************************************/
 static bool nwkRxRejectDuplicate(NwkFrame_t *frame)
 {
   NwkFrameHeader_t *header = frame->header;
@@ -213,8 +193,6 @@ static bool nwkRxRejectDuplicate(NwkFrame_t *frame)
   return false;
 }
 
-/*****************************************************************************
-*****************************************************************************/
 static uint8_t nwkRxProcessReceivedFrame(NwkFrame_t *frame)
 {
   NwkFrameHeader_t *header = frame->header;
@@ -245,8 +223,6 @@ static uint8_t nwkRxProcessReceivedFrame(NwkFrame_t *frame)
   return NWK_RX_STATE_FINISH;
 }
 
-/*****************************************************************************
-*****************************************************************************/
 static void nwkRxProcessAcceptedFrame(NwkFrame_t *frame)
 {
   frame->state = NWK_RX_STATE_INDICATE;
@@ -261,8 +237,6 @@ static void nwkRxProcessAcceptedFrame(NwkFrame_t *frame)
   SYS_TaskSet(NWK_RX_TASK);
 }
 
-/*****************************************************************************
-*****************************************************************************/
 static void nwkRxIndicateFrame(NwkFrame_t *frame)
 {
   NWK_DataInd_t ind;
@@ -288,24 +262,18 @@ static void nwkRxIndicateFrame(NwkFrame_t *frame)
   SYS_TaskSet(NWK_RX_TASK);
 }
 
-/*****************************************************************************
-*****************************************************************************/
 void nwkRxSleepReq(void)
 {
   nwkRxRequests |= NWK_RX_SLEEP_REQUEST;
   SYS_TaskSet(NWK_RX_TASK);
 }
 
-/*****************************************************************************
-*****************************************************************************/
 void nwkRxWakeupReq(void)
 {
   nwkRxRequests |= NWK_RX_WAKEUP_REQUEST;
   SYS_TaskSet(NWK_RX_TASK);
 }
 
-/*****************************************************************************
-*****************************************************************************/
 static void nwkRxHandleRequests(void)
 {
   if (SYS_QueueHead(&nwkRxQueue))
@@ -326,8 +294,6 @@ static void nwkRxHandleRequests(void)
   nwkRxRequests = NWK_RX_NO_REQUESTS;
 }
 
-/*****************************************************************************
-*****************************************************************************/
 void nwkRxTaskHandler(void)
 {
   NwkFrame_t *frame, *next;
@@ -335,51 +301,56 @@ void nwkRxTaskHandler(void)
   frame = SYS_QueueHead(&nwkRxQueue);
   while (frame)
   {
-    next = (NwkFrame_t *) SYS_QueueNext((void *) frame);
+    next = (NwkFrame_t *)SYS_QueueNext((void *)frame);
 
     switch (frame->state)
     {
-      case NWK_RX_STATE_RECEIVED:
-      {
-        frame->state = nwkRxProcessReceivedFrame(frame);
-        SYS_TaskSet(NWK_RX_TASK);
-      } break;
+    case NWK_RX_STATE_RECEIVED:
+    {
+      frame->state = nwkRxProcessReceivedFrame(frame);
+      SYS_TaskSet(NWK_RX_TASK);
+    }
+    break;
 
-      case NWK_RX_STATE_ACCEPT:
-      {
-        nwkRxProcessAcceptedFrame(frame);
-      } break;
+    case NWK_RX_STATE_ACCEPT:
+    {
+      nwkRxProcessAcceptedFrame(frame);
+    }
+    break;
 
-      case NWK_RX_STATE_INDICATE:
-      {
-        nwkRxIndicateFrame(frame);
-      } break;
+    case NWK_RX_STATE_INDICATE:
+    {
+      nwkRxIndicateFrame(frame);
+    }
+    break;
 
-      case NWK_RX_STATE_ACKNOWLEDGE:
-      {
-        nwkRxSendAck(frame);
-        frame->state = NWK_RX_STATE_FINISH;
-        SYS_TaskSet(NWK_RX_TASK);
-      } break;
+    case NWK_RX_STATE_ACKNOWLEDGE:
+    {
+      nwkRxSendAck(frame);
+      frame->state = NWK_RX_STATE_FINISH;
+      SYS_TaskSet(NWK_RX_TASK);
+    }
+    break;
 
-      case NWK_RX_STATE_ROUTE:
-      {
-        SYS_QueueRemove(&nwkRxQueue, frame);
-        nwkRouteFrame(frame);
-      } break;
+    case NWK_RX_STATE_ROUTE:
+    {
+      SYS_QueueRemove(&nwkRxQueue, frame);
+      nwkRouteFrame(frame);
+    }
+    break;
 
-      case NWK_RX_STATE_FINISH:
-      {
-        SYS_QueueRemove(&nwkRxQueue, frame);
-        nwkFrameFree(frame);
-      } break;
+    case NWK_RX_STATE_FINISH:
+    {
+      SYS_QueueRemove(&nwkRxQueue, frame);
+      nwkFrameFree(frame);
+    }
+    break;
 
-      default:
-        break;
+    default:
+      break;
     };
     frame = next;
   }
 
   nwkRxHandleRequests();
 }
-

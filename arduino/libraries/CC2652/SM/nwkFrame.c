@@ -41,12 +41,10 @@
 #include "nwkPrivate.h"
 #include "sysMem.h"
 
-/*****************************************************************************
-*****************************************************************************/
 NwkFrame_t *nwkFrameAlloc(uint8_t size)
 {
   NwkFrame_t *frame;
-  uint8_t    *buf;
+  uint8_t *buf;
 
   buf = SYS_MemAlloc(sizeof(NwkFrame_t) + sizeof(NwkFrameHeader_t) + size);
   if (NULL == buf)
@@ -62,15 +60,11 @@ NwkFrame_t *nwkFrameAlloc(uint8_t size)
   return frame;
 }
 
-/*****************************************************************************
-*****************************************************************************/
 void nwkFrameFree(NwkFrame_t *frame)
 {
-  SYS_MemFree((uint8_t*)frame);
+  SYS_MemFree((uint8_t *)frame);
 }
 
-/*****************************************************************************
-*****************************************************************************/
 void nwkFrameCommandInit(NwkFrame_t *frame)
 {
   frame->tx.status = NWK_SUCCESS_STATUS;
@@ -86,4 +80,3 @@ void nwkFrameCommandInit(NwkFrame_t *frame)
   frame->header->nwkSrcAddr = nwkIb.addr;
   frame->header->nwkDstAddr = 0;
 }
-

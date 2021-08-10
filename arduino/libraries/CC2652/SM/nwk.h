@@ -40,13 +40,9 @@ extern "C" {
 #include "nwkConfig.h"
 #include "sysQueue.h"
 
-/*****************************************************************************
-*****************************************************************************/
 #define NWK_MAX_PAYLOAD_SIZE           (127 - 15/*NwkFrameHeader_t*/ - 2/*crc*/)
 #define NWK_MAX_SECURED_PAYLOAD_SIZE   (127 - 15/*NwkFrameHeader_t*/ - 4/*mic*/ - 2/*crc*/)
 
-/*****************************************************************************
-*****************************************************************************/
 typedef enum
 {
   NWK_SUCCESS_STATUS                      = 0x00,
@@ -102,8 +98,6 @@ typedef struct NWK_DataInd_t
   int8_t       rssi;
 } NWK_DataInd_t;
 
-/*****************************************************************************
-*****************************************************************************/
 void NWK_Init(void);
 void NWK_SetAddr(uint16_t addr);
 void NWK_SetPanId(uint16_t panId);
@@ -116,6 +110,13 @@ void NWK_WakeupReq(void);
 void NWK_WakeupConf(void);
 
 uint16_t NWK_RouteNextHop(uint16_t dst);
+
+#ifdef NWK_DEBUG
+  #include <stdio.h>
+  #define NWK_PRINTF printf
+#else
+  #define NWK_PRINTF 
+#endif
 
 #ifdef __cplusplus
 } // end of extern "C"

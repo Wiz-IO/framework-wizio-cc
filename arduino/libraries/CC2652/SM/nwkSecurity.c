@@ -40,8 +40,6 @@
 #include <stdbool.h>
 #include <nwkPrivate.h>
 
-/*****************************************************************************
-*****************************************************************************/
 static void xtea(uint32_t text[2], uint32_t const key[4])
 {
   uint32_t t0 = text[0];
@@ -59,8 +57,6 @@ static void xtea(uint32_t text[2], uint32_t const key[4])
   text[1] = t1;
 }
 
-/*****************************************************************************
-*****************************************************************************/
 static bool nwkSecurityProcessFrame(NwkFrame_t *frame, bool decrypt)
 {
   uint32_t vector[2];
@@ -83,12 +79,12 @@ static bool nwkSecurityProcessFrame(NwkFrame_t *frame, bool decrypt)
 
     for (uint8_t i = 0; i < block; i++)
     {
-      frame->payload[j*8 + i] ^= vectorb[i];
+      frame->payload[j * 8 + i] ^= vectorb[i];
 
       if (decrypt)
-        vectorb[i] ^= frame->payload[j*8 + i];
+        vectorb[i] ^= frame->payload[j * 8 + i];
       else
-        vectorb[i] = frame->payload[j*8 + i];
+        vectorb[i] = frame->payload[j * 8 + i];
     }
 
     size -= block;
@@ -96,29 +92,24 @@ static bool nwkSecurityProcessFrame(NwkFrame_t *frame, bool decrypt)
 
   if (decrypt)
   {
-    memcpy((uint8_t *)&mic, &frame->data[frame->size]-sizeof(mic), sizeof(mic));
+    memcpy((uint8_t *)&mic, &frame->data[frame->size] - sizeof(mic), sizeof(mic));
     return mic == (vector[0] ^ vector[1]);
   }
   else
   {
     mic = vector[0] ^ vector[1];
-    memcpy(&frame->data[frame->size]-sizeof(mic), (uint8_t *)&mic, sizeof(mic));
+    memcpy(&frame->data[frame->size] - sizeof(mic), (uint8_t *)&mic, sizeof(mic));
   }
 
   return true;
 }
 
-/*****************************************************************************
-*****************************************************************************/
 void nwkSecurityEncryptFrame(NwkFrame_t *frame)
 {
   nwkSecurityProcessFrame(frame, false);
 }
 
-/*****************************************************************************
-*****************************************************************************/
 bool nwkSecurityDecryptFrame(NwkFrame_t *frame)
 {
   return nwkSecurityProcessFrame(frame, true);
 }
-

@@ -39,8 +39,6 @@
 #include "nwkConfig.h"
 #include "sysTypes.h"
 
-/*****************************************************************************
-*****************************************************************************/
 extern void sysTimerTaskHandler(void);
 extern void phyTaskHandler(void);
 extern void nwkTxTaskHandler(void);
@@ -49,8 +47,6 @@ extern void nwkDataReqTaskHandler(void);
 
 void sysPortTaskHandler(void);
 
-/*****************************************************************************
-*****************************************************************************/
 volatile uint16_t sysTasksPending = 0;
 static uint16_t sysPortTasksPending = 0;
 
@@ -65,8 +61,6 @@ static void (*sysTaskHandlers[])(void) = {
 
 static void (*sysPortTaskHandlers[NWK_MAX_PORTS_AMOUNT])();
 
-/*****************************************************************************
-*****************************************************************************/
 void sysPortTaskHandler(void)
 {
   for (uint8_t i = 0; i < NWK_MAX_PORTS_AMOUNT; i++)
@@ -76,21 +70,20 @@ void sysPortTaskHandler(void)
       ATOMIC_SECTION_ENTER
       sysPortTasksPending ^= (1 << i);
       ATOMIC_SECTION_LEAVE
-      sysPortTaskHandlers[i]();
+      if (sysTaskHandlers[i])
+      {
+        sysPortTaskHandlers[i]();
+      }
       break;
     }
   }
 }
 
-/*****************************************************************************
-*****************************************************************************/
 void SYS_TaskSet(SYS_TaskId_t id)
 {
   SYS_TaskSetInline(id);
 }
 
-/*****************************************************************************
-*****************************************************************************/
 void SYS_PortSet(uint8_t port)
 {
   ATOMIC_SECTION_ENTER
@@ -99,15 +92,11 @@ void SYS_PortSet(uint8_t port)
   SYS_TaskSet(SYS_PORT_TASK);
 }
 
-/*****************************************************************************
-*****************************************************************************/
 void SYS_PortTaskRegister(uint8_t port, void (*handler)(void))
 {
   sysPortTaskHandlers[port] = handler;
 }
 
-/*****************************************************************************
-*****************************************************************************/
 void SYS_TaskRun(void)
 {
   for (uint8_t i = 0; i < ARRAY_SIZE(sysTaskHandlers); i++)
@@ -117,7 +106,10 @@ void SYS_TaskRun(void)
       ATOMIC_SECTION_ENTER
       sysTasksPending ^= (1 << i);
       ATOMIC_SECTION_LEAVE
-      sysTaskHandlers[i]();
+      if (sysTaskHandlers[i])
+      {
+        sysTaskHandlers[i]();
+      }
       break;
     }
   }

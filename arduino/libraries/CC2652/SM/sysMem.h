@@ -40,8 +40,6 @@
 #include <stdint.h>
 #include <stdbool.h>
 
-/*****************************************************************************
-*****************************************************************************/
 void SYS_MemInit(void);
 uint8_t *SYS_MemAlloc(uint8_t size);
 void SYS_MemFree(uint8_t *mem);

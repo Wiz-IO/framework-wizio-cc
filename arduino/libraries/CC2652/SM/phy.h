@@ -47,4 +47,11 @@ void PHY_WakeupReq(void);
 void PHY_SleepConf(void);
 void PHY_WakeupConf(void);
 
+#ifdef PHY_DEBUG
+  #include <stdio.h>
+  #define PHY_PRINTF printf
+#else
+  #define PHY_PRINTF 
+#endif
+
 #endif // _PHY_H_

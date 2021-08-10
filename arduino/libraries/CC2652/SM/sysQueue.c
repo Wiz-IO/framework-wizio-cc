@@ -46,8 +46,6 @@ void SYS_QueueValidate(SYS_Queue_t **queue);
 #define SYS_QueueValidate(a)
 #endif
 
-/*****************************************************************************
-*****************************************************************************/
 void SYS_QueueAppend(SYS_Queue_t **queue, void *item)
 {
   SYS_QueueValidate(queue);
@@ -66,8 +64,6 @@ void SYS_QueueAppend(SYS_Queue_t **queue, void *item)
   SYS_QueueValidate(queue);
 }
 
-/*****************************************************************************
-*****************************************************************************/
 void *SYS_QueueRemove(SYS_Queue_t **queue, void *item)
 {
   SYS_QueueValidate(queue);
@@ -90,8 +86,7 @@ void *SYS_QueueRemove(SYS_Queue_t **queue, void *item)
   SYS_QueueValidate(queue);
   return item;
 }
-/*****************************************************************************
-*****************************************************************************/
+
 #ifdef QUEUE_DEBUG
 int SYS_QueueCount(SYS_Queue_t **queue)
 {
@@ -108,8 +103,7 @@ int SYS_QueueCount(SYS_Queue_t **queue)
 
   return counter;
 }
-/*****************************************************************************
-*****************************************************************************/
+
 void SYS_QueueValidate(SYS_Queue_t **queue)
 {
   if ((*queue > 0) && (*queue < 0x1000))

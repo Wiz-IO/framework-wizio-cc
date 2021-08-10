@@ -46,12 +46,8 @@
 #include "sysTimer.h"
 #include "sysTaskManager.h"
 
-/*****************************************************************************
-*****************************************************************************/
-#define NWK_TX_WAIT_TIMER_INTERVAL   32 // ms
+#define NWK_TX_WAIT_TIMER_INTERVAL 32 // ms
 
-/*****************************************************************************
-*****************************************************************************/
 enum
 {
   NWK_TX_STATE_SEND,
@@ -64,37 +60,28 @@ enum
 
 enum
 {
-  NWK_TX_SLEEP_REQUEST   = 1 << 0,
-  NWK_TX_WAKEUP_REQUEST  = 1 << 1,
-  NWK_TX_NO_REQUESTS     = 0,
+  NWK_TX_SLEEP_REQUEST = 1 << 0,
+  NWK_TX_WAKEUP_REQUEST = 1 << 1,
+  NWK_TX_NO_REQUESTS = 0,
 };
 
 typedef struct PACK NwkTxAckCommand_t
 {
-  uint8_t    id;
-  uint8_t    seq;
+  uint8_t id;
+  uint8_t seq;
 } NwkTxAckCommand_t;
 
-/*****************************************************************************
-*****************************************************************************/
-// ETG To make AVR Studio happy
 void nwkTxTaskHandler(void);
 
-/*****************************************************************************
-*****************************************************************************/
 static void nwkTxBroadcastConf(NwkFrame_t *frame);
 static void nwkTxStartWaitTimer(NwkFrame_t *frame);
 static void nwkTxWaitTimerHandler(SYS_Timer_t *timer);
 
-/*****************************************************************************
-*****************************************************************************/
 static SYS_Queue_t *nwkTxQueue;
 static NwkFrame_t *nwkPhyActiveFrame;
 static SYS_Timer_t nwkTxWaitTimer;
 static uint8_t nwkTxRequests = NWK_TX_NO_REQUESTS;
 
-/*****************************************************************************
-*****************************************************************************/
 void nwkTxInit(void)
 {
   SYS_QueueInit(&nwkTxQueue);
@@ -105,8 +92,6 @@ void nwkTxInit(void)
   nwkTxWaitTimer.handler = nwkTxWaitTimerHandler;
 }
 
-/*****************************************************************************
-*****************************************************************************/
 void nwkTxFrame(NwkFrame_t *frame)
 {
   if (frame->header->nwkFcf.securityEnabled)
@@ -126,13 +111,10 @@ void nwkTxFrame(NwkFrame_t *frame)
   else
     frame->header->macFcf = 0x8861;
 
-
   SYS_QueueAppend(&nwkTxQueue, frame);
   SYS_TaskSet(NWK_TX_TASK);
 }
 
-/*****************************************************************************
-*****************************************************************************/
 void nwkTxBroadcastFrame(NwkFrame_t *frame)
 {
   NwkFrame_t *newFrame;
@@ -156,15 +138,11 @@ void nwkTxBroadcastFrame(NwkFrame_t *frame)
   SYS_TaskSet(NWK_TX_TASK);
 }
 
-/*****************************************************************************
-*****************************************************************************/
 static void nwkTxBroadcastConf(NwkFrame_t *frame)
 {
   nwkFrameFree(frame);
 }
 
-/*****************************************************************************
-*****************************************************************************/
 void nwkTxAckReceived(NWK_DataInd_t *ind)
 {
   NwkTxAckCommand_t *command = (NwkTxAckCommand_t *)ind->data;
@@ -183,16 +161,12 @@ void nwkTxAckReceived(NWK_DataInd_t *ind)
   }
 }
 
-/*****************************************************************************
-*****************************************************************************/
 static void nwkTxStartWaitTimer(NwkFrame_t *frame)
 {
   frame->tx.waitTime = NWK_ACK_WAIT_TIME / NWK_TX_WAIT_TIMER_INTERVAL + 1;
   SYS_TimerStart(&nwkTxWaitTimer);
 }
 
-/*****************************************************************************
-*****************************************************************************/
 static void nwkTxWaitTimerHandler(SYS_Timer_t *timer)
 {
   bool stop = true;
@@ -214,24 +188,18 @@ static void nwkTxWaitTimerHandler(SYS_Timer_t *timer)
     SYS_TimerStop(timer);
 }
 
-/*****************************************************************************
-*****************************************************************************/
 void nwkTxSleepReq(void)
 {
   nwkTxRequests |= NWK_TX_SLEEP_REQUEST;
   SYS_TaskSet(NWK_TX_TASK);
 }
 
-/*****************************************************************************
-*****************************************************************************/
 void nwkTxWakeupReq(void)
 {
   nwkTxRequests |= NWK_TX_WAKEUP_REQUEST;
   SYS_TaskSet(NWK_TX_TASK);
 }
 
-/*****************************************************************************
-*****************************************************************************/
 static void nwkTxHandleRequests(void)
 {
   if (SYS_QueueHead(&nwkTxQueue))
@@ -250,8 +218,6 @@ static void nwkTxHandleRequests(void)
   nwkTxRequests = NWK_TX_NO_REQUESTS;
 }
 
-/*****************************************************************************
-*****************************************************************************/
 void nwkTxTaskHandler(void)
 {
   NwkFrame_t *frame, *next;
@@ -259,64 +225,68 @@ void nwkTxTaskHandler(void)
   frame = SYS_QueueHead(&nwkTxQueue);
   while (frame)
   {
-    next = (NwkFrame_t *) SYS_QueueNext((void *) frame);
+    next = (NwkFrame_t *)SYS_QueueNext((void *)frame);
 
     switch (frame->state)
     {
-      case NWK_TX_STATE_ENCRYPT:
-      {
-        nwkSecurityEncryptFrame(frame);
-        frame->state = NWK_TX_STATE_SEND;
-        SYS_TaskSet(NWK_TX_TASK);
-      } break;
+    case NWK_TX_STATE_ENCRYPT:
+    {
+      nwkSecurityEncryptFrame(frame);
+      frame->state = NWK_TX_STATE_SEND;
+      SYS_TaskSet(NWK_TX_TASK);
+    }
+    break;
 
-      case NWK_TX_STATE_SEND:
-      {
-        if (nwkPhyActiveFrame)
-          break;
-
-        nwkPhyActiveFrame = frame;
-        frame->state = NWK_TX_STATE_WAIT_CONF;
-        PHY_DataReq(frame->data, frame->size);
-      } break;
-
-      case NWK_TX_STATE_WAIT_CONF:
+    case NWK_TX_STATE_SEND:
+    {
+      if (nwkPhyActiveFrame)
         break;
 
-      case NWK_TX_STATE_SENT:
+      nwkPhyActiveFrame = frame;
+      frame->state = NWK_TX_STATE_WAIT_CONF;
+      PHY_DataReq(frame->data, frame->size); // real send
+    }
+    break;
+
+    case NWK_TX_STATE_WAIT_CONF:
+      break;
+
+    case NWK_TX_STATE_SENT:
+    {
+      if (NWK_SUCCESS_STATUS == frame->tx.status)
       {
-        if (NWK_SUCCESS_STATUS == frame->tx.status)
+        if (frame->header->nwkSrcAddr == nwkIb.addr && frame->header->nwkFcf.ackRequest)
         {
-          if (frame->header->nwkSrcAddr == nwkIb.addr && frame->header->nwkFcf.ackRequest)
-          {
-            frame->state = NWK_TX_STATE_WAIT_ACK;
-            nwkTxStartWaitTimer(frame);
-          }
-          else
-          {
-            frame->state = NWK_TX_STATE_CONFIRM;
-            SYS_TaskSet(NWK_TX_TASK);
-          }
+          frame->state = NWK_TX_STATE_WAIT_ACK;
+          nwkTxStartWaitTimer(frame);
         }
         else
         {
           frame->state = NWK_TX_STATE_CONFIRM;
           SYS_TaskSet(NWK_TX_TASK);
-	}
-      } break;
-
-      case NWK_TX_STATE_WAIT_ACK:
-        break;
-
-      case NWK_TX_STATE_CONFIRM:
+        }
+      }
+      else
       {
-        nwkRouteFrameSent(frame);
-        SYS_QueueRemove(&nwkTxQueue, frame);
-        frame->tx.confirm(frame);
-      } break;
+        frame->state = NWK_TX_STATE_CONFIRM;
+        SYS_TaskSet(NWK_TX_TASK);
+      }
+    }
+    break;
 
-      default:
-        break;
+    case NWK_TX_STATE_WAIT_ACK:
+      break;
+
+    case NWK_TX_STATE_CONFIRM:
+    {
+      nwkRouteFrameSent(frame);
+      SYS_QueueRemove(&nwkTxQueue, frame);
+      frame->tx.confirm(frame);
+    }
+    break;
+
+    default:
+      break;
     };
     frame = next;
   }
@@ -324,8 +294,6 @@ void nwkTxTaskHandler(void)
   nwkTxHandleRequests();
 }
 
-/*****************************************************************************
-*****************************************************************************/
 static uint8_t convertPhyStatus(uint8_t status)
 {
   if (TRAC_STATUS_SUCCESS == status ||
@@ -343,8 +311,6 @@ static uint8_t convertPhyStatus(uint8_t status)
     return NWK_ERROR_STATUS;
 }
 
-/*****************************************************************************
-*****************************************************************************/
 void PHY_DataConf(uint8_t status)
 {
   nwkPhyActiveFrame->tx.status = convertPhyStatus(status);
@@ -352,4 +318,3 @@ void PHY_DataConf(uint8_t status)
   nwkPhyActiveFrame = NULL;
   SYS_TaskSet(NWK_TX_TASK);
 }
-

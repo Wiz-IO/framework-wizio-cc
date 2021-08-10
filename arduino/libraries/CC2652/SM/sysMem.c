@@ -37,30 +37,22 @@
 #include <stdint.h>
 #include <stdlib.h>
 #include <stdbool.h>
-////#include "config.h"
 #include "sysMem.h"
 #include "sysTypes.h"
 
-/*lint --e{826}  Surpress 'pointer conversion' messages, which occur when we
- *               convert from the mem_pool dec to that type */
+/*lint --e{826}  Surpress 'pointer conversion' messages, which occur when we convert from the mem_pool dec to that type */
 
-/*****************************************************************************
-*****************************************************************************/
 #ifndef SYS_MEM_POOL_SIZE
-#define SYS_MEM_POOL_SIZE    500
+#define SYS_MEM_POOL_SIZE 500
 #endif
 
-/*****************************************************************************
-*****************************************************************************/
 typedef struct PACK SysMemChunk_t
 {
-  uint8_t   free;
-  uint8_t   filler;
-  uint16_t  size;
+  uint8_t free;
+  uint8_t filler;
+  uint16_t size;
 } SysMemChunk_t;
 
-/*****************************************************************************
-*****************************************************************************/
 /* Pointer to 32-bit variable resulted in memory overwrite. Adding to
  * (uint32_t *) type results in pointer incrementing by 4x what code was
  * expecting. Changed pointers to uint8_t * for now - this is potentially
@@ -70,8 +62,6 @@ typedef struct PACK SysMemChunk_t
 static uint8_t sysMemPool[SYS_MEM_POOL_SIZE];
 static uint8_t *sysMemPoolEnd;
 
-/*****************************************************************************
-*****************************************************************************/
 void SYS_MemInit(void)
 {
   SysMemChunk_t *chunk = (SysMemChunk_t *)sysMemPool;
@@ -82,8 +72,6 @@ void SYS_MemInit(void)
   sysMemPoolEnd = sysMemPool + chunk->size;
 }
 
-/*****************************************************************************
-*****************************************************************************/
 uint8_t *SYS_MemAlloc(uint8_t size)
 {
   SysMemChunk_t *chunk;
@@ -117,8 +105,6 @@ uint8_t *SYS_MemAlloc(uint8_t size)
   return NULL;
 }
 
-/*****************************************************************************
-*****************************************************************************/
 void SYS_MemFree(uint8_t *mem)
 {
   SysMemChunk_t *chunk, *prev = NULL;
@@ -149,4 +135,3 @@ void SYS_MemFree(uint8_t *mem)
     ptr += chunk->size;
   }
 }
-
