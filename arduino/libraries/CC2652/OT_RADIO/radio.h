@@ -27,22 +27,29 @@ void otPlatRadioTxDone(otRadioFrame *aFrame, otRadioFrame *aAckFrame, otError aE
 
 class Radio
 {
-public:
-    Radio() { cc2652RadioInit(); }
+private:
+    bool on;
 
-    /* for receive */
+public:
+    Radio()
+    {
+        on = false;
+        cc2652RadioInit();
+    }
+
     inline void SetPanId(uint16_t aPanid) { otPlatRadioSetPanId(aPanid); }
 
-    /* for receive */
     inline void SetShortAddress(uint16_t aAddress) { otPlatRadioSetShortAddress(aAddress); }
 
     inline int SetTransmitPower(int8_t aPower) { return otPlatRadioSetTransmitPower(aPower); }
 
-    int enable() { return otPlatRadioEnable(); }
+    inline int enable() { return otPlatRadioEnable(); }
 
-    int disable() { return otPlatRadioDisable(); }
+    inline int disable() { return otPlatRadioDisable(); }
 
     int receive(uint8_t aChannel = 11) { return otPlatRadioReceive(aChannel); }
+
+    inline void loop() { cc2652RadioProcess(); }
 
     /*auto add length & crc*/
     int send_raw(uint8_t *buffer, uint8_t size)
@@ -57,19 +64,17 @@ public:
         return -1;
     }
 
-    void loop()
+    bool begin(uint16_t aPanid, uint16_t aAddress, int8_t aPower, uint8_t aChannel)
     {
-        cc2652RadioProcess();
-    }
-
-    bool begin(uint16_t aPanid, uint16_t aAddress, uint8_t aChannel = 11)
-    {
-        otPlatRadioSetPanId(aPanid);          /* for receive */
-        otPlatRadioSetShortAddress(aAddress); /* for receive */
-        otPlatRadioSetTransmitPower(0);       /* error ?! */
-        if (OT_ERROR_NONE == otPlatRadioEnable())
-            if (OT_ERROR_NONE == otPlatRadioReceive(aChannel))
-                return true;
-        return false;
+        if (false == on)
+        {
+            otPlatRadioSetPanId(aPanid);                               // for receive
+            otPlatRadioSetShortAddress(aAddress);                      // for receive
+            if (OT_ERROR_NONE == otPlatRadioSetTransmitPower(aPower))  // error
+                if (OT_ERROR_NONE == otPlatRadioEnable())              // power on
+                    if (OT_ERROR_NONE == otPlatRadioReceive(aChannel)) // rx
+                        on = true;
+        }
+        return on;
     }
 };
