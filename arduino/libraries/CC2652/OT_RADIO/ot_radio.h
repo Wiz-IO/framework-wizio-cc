@@ -38,7 +38,7 @@
 
 #include <stdint.h>
 
-#include <ot_error.h>
+#include "ot_error.h"
 //#include <openthread/instance.h> // [WizIO] REMOVED
 
 #ifdef __cplusplus

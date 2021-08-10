@@ -35,7 +35,7 @@
 #ifndef OPENTHREAD_ERROR_H_
 #define OPENTHREAD_ERROR_H_
 
-#include <ot_toolchain.h>
+#include "ot_toolchain.h"
 
 #ifdef __cplusplus
 extern "C" {
