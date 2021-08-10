@@ -52,7 +52,7 @@ public:
     inline void loop() { cc2652RadioProcess(); }
 
     /*auto add length & crc*/
-    int send_raw(uint8_t *buffer, uint8_t size)
+    int transmit(uint8_t *buffer, uint8_t size)
     {
         if (otPlatRadioIsEnabled() && buffer && size < 128 /* max ? */)
         {
