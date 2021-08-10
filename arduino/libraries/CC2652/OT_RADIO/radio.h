@@ -68,12 +68,23 @@ public:
     {
         if (false == on)
         {
-            otPlatRadioSetPanId(aPanid);                               // for receive
-            otPlatRadioSetShortAddress(aAddress);                      // for receive
-            if (OT_ERROR_NONE == otPlatRadioSetTransmitPower(aPower))  // error
-                if (OT_ERROR_NONE == otPlatRadioEnable())              // power on
-                    if (OT_ERROR_NONE == otPlatRadioReceive(aChannel)) // rx
-                        on = true;
+            otPlatRadioSetPanId(aPanid);
+            otPlatRadioSetShortAddress(aAddress);
+            if (OT_ERROR_NONE == otPlatRadioSetTransmitPower(aPower))
+            {
+                if (OT_ERROR_NONE == otPlatRadioEnable())               // power on
+                    on = OT_ERROR_NONE == otPlatRadioReceive(aChannel); // goto rx mode
+            }
+        }
+        return on;
+    }
+
+    bool begin(uint8_t aChannel = 11)
+    {
+        if (false == on)
+        {
+            if (OT_ERROR_NONE == otPlatRadioEnable())               // power on
+                on = OT_ERROR_NONE == otPlatRadioReceive(aChannel); // goto rx mode
         }
         return on;
     }
