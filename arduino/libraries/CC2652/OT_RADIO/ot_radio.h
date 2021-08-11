@@ -215,10 +215,8 @@ typedef struct otRadioIeInfo
 typedef struct otRadioFrame
 {
     uint8_t *mPsdu; ///< The PSDU.
-
     uint16_t mLength;  ///< Length of the PSDU.
     uint8_t  mChannel; ///< Channel used to transmit/receive the frame.
-
     uint8_t mRadioType; ///< Radio link type - should be ignored by radio driver.
 
     /**
@@ -286,6 +284,8 @@ typedef struct otRadioFrame
             bool mAckedWithSecEnhAck : 1; ///< This indicates if this frame was acknowledged with secured enhance ACK.
         } mRxInfo;
     } mInfo;
+
+    void * mUser; /* [WizIO] for sTransmitFrame user variable */
 } otRadioFrame;
 
 /**
