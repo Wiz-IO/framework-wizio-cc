@@ -1,4 +1,4 @@
-#include <radio.h>
+#include <ieee_ot_radio.h>
 #include "nwk.h"
 #include "sysTaskManager.h"
 
