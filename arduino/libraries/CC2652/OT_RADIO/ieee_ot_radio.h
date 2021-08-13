@@ -15,6 +15,10 @@
 // limitations under the License.
 //
 ////////////////////////////////////////////////////////////////////////////////////////
+#ifndef IEEE_OT_RADIO_H_
+#define IEEE_OT_RADIO_H_
+
+// https://openthread.io/reference/group/radio-operation
 
 #include <stdint.h>
 #include "ot_radio.h"
@@ -56,14 +60,16 @@ public:
 
     inline int SetTransmitPower(int8_t aPower) { return otPlatRadioSetTransmitPower(aPower); }
 
+    /* power on */
     inline int enable() { return otPlatRadioEnable(); }
 
+    /* power off */
     inline int disable() { return otPlatRadioDisable(); }
 
+    /* go to rx mode */
     inline int receive(uint8_t aChannel = 11) { return otPlatRadioReceive(aChannel); }
 
-    inline void process() { cc2652RadioProcess(); }
-
+    /* tx -> send -> rx */
     int transmit(uint8_t *buffer, uint8_t size, void *user = NULL)
     {
         if (buffer && size < 128 /* max ? */)
@@ -77,6 +83,7 @@ public:
         return -1;
     }
 
+    /* tx -> send -> rx */
     int transmit()
     {
         otRadioFrame *otFrame = otPlatRadioGetTransmitBuffer();
@@ -108,4 +115,8 @@ public:
         }
         return false;
     }
+
+    inline void process() { cc2652RadioProcess(); }
 };
+
+#endif // IEEE_OT_RADIO_H_
