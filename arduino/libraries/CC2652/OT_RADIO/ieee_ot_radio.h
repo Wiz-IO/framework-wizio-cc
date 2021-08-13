@@ -84,7 +84,7 @@ public:
         return otPlatRadioTransmit(otFrame);
     }
 
-    bool begin(uint16_t aPanid, uint16_t aAddress, int8_t aPower, uint8_t aChannel = 11)
+    bool begin(uint16_t aPanid, uint16_t aAddress, uint8_t aChannel = 11, int8_t aPower = 0)
     {
         if (false == otPlatRadioIsEnabled())
         {
