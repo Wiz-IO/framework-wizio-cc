@@ -60,28 +60,28 @@ public:
 
     inline int disable() { return otPlatRadioDisable(); }
 
-    /* 
-        callback: otPlatRadioReceiveDone() 
-    */
-    int receive(uint8_t aChannel = 11) { return otPlatRadioReceive(aChannel); }
+    inline int receive(uint8_t aChannel = 11) { return otPlatRadioReceive(aChannel); }
 
-    inline void loop() { cc2652RadioProcess(); }
+    inline void process() { cc2652RadioProcess(); }
 
-    /*
-        transmit raw data
-        auto add length & crc
-        callback: otPlatRadioTxStarted() &  otPlatRadioTxDone()
-    */
-    int transmit(uint8_t *buffer, uint8_t size)
+    int transmit(uint8_t *buffer, uint8_t size, void *user = NULL)
     {
         if (buffer && size < 128 /* max ? */)
         {
-            otRadioFrame frame;
-            frame.mPsdu = buffer;
-            frame.mLength = size + 2; /* 2 bytes of CRC placeholder, removing, because we generate that in hardware */
-            return otPlatRadioTransmit(&frame);
+            otRadioFrame *otFrame = otPlatRadioGetTransmitBuffer();
+            otFrame->mPsdu = buffer;
+            otFrame->mLength = size + 2; /* otPlatRadioTransmit() will remove 2 bytes*/
+            otFrame->mUser = user;
+            return otPlatRadioTransmit(otFrame);
         }
         return -1;
+    }
+
+    int transmit()
+    {
+        otRadioFrame *otFrame = otPlatRadioGetTransmitBuffer();
+        otFrame->mLength += 2; /* otPlatRadioTransmit() will remove 2 bytes*/
+        return otPlatRadioTransmit(otFrame);
     }
 
     bool begin(uint16_t aPanid, uint16_t aAddress, int8_t aPower, uint8_t aChannel = 11)
