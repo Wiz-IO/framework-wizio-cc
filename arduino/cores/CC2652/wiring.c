@@ -24,6 +24,9 @@ static void gpio_on(void)
     static bool on = false;
     if (on)
         return;
+#if 1
+    soc_power_on_periphery(PRCM_PERIPH_GPIO, 1, 0, 0);
+#else
     /* GPIO power up*/
     PRCMPowerDomainOn(PRCM_DOMAIN_PERIPH);
     while (PRCMPowerDomainsAllOn(PRCM_DOMAIN_PERIPH) != PRCM_DOMAIN_POWER_ON)
@@ -32,6 +35,7 @@ static void gpio_on(void)
     PRCMLoadSet();
     while (!PRCMLoadGet())
         ;
+#endif
     on = true;
 }
 
@@ -39,9 +43,11 @@ void pinMode(uint8_t pin /*IOID_XX*/, uint8_t mode)
 {
     if (pin >= IOID_31) // protect pin array
         return;
-
-    gpio_on();
-
+#if 1
+    soc_power_on_periphery(PRCM_PERIPH_GPIO, 1, 0, 0);
+#else
+        //gpio_on();
+#endif
     if (mode & (OUTPUT | OUTPUT_LO | OUTPUT_HI))
     {
         IOCPortConfigureSet(pin, IOC_PORT_GPIO, IOC_STD_OUTPUT);
@@ -66,14 +72,17 @@ void pinMode(uint8_t pin /*IOID_XX*/, uint8_t mode)
 
 static void irq_gpio_callback(uint gpio, uint32_t events)
 {
+    // TODO
 }
 
 void attachInterrupt(uint8_t pin, void (*cb)(void), int mode)
 {
+    // TODO
 }
 
 void detachInterrupt(uint8_t pin)
 {
+    // TODO
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////
@@ -94,22 +103,26 @@ inline void noInterrupts(void)
 
 bool analogSetFrequency(uint8_t pin, uint32_t freq)
 {
+    // TODO
     return 0;
 }
 
 void analogWrite(uint8_t pin, int duty)
 {
     // PWM, DAC
+    // TODO
 }
 
 void analogInit(uint8_t adc_channel)
 {
     // PWM, ADC, DAC
+    // TODO
 }
 
 int analogRead(uint8_t adc_channel)
 {
     // ADC
+    // TODO
     return 0;
 }
 

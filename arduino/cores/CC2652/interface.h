@@ -40,14 +40,12 @@ extern "C"
 #include <time.h>
 
 #include <driverlib/cpu.h>
-
-    void dmp_buf(const char *text, const unsigned char *buf, unsigned int len);
-#define DMP dmp_buf
+#include <driverlib/prcm.h>
+#include <driverlib/ioc.h>
+#include <driverlib/aon_rtc.h>
 
     typedef void (*voidFuncPtr)(void);
     typedef void (*voidFuncPtrParam)(void *);
-
-#define INLINE inline __attribute__((always_inline))
 
     __attribute__((always_inline)) __STATIC_INLINE void __enable_irq(void)
     {
@@ -135,22 +133,18 @@ extern "C"
         return msTicks;
     }
 
-    unsigned int micros(void); /*TODO*/
+    unsigned int micros(void); // TODO
 
-    static inline void delayMicroseconds(unsigned int us)
+    static inline void delayMicroseconds(unsigned int us) // TODO ?
     {
         // At 48 MHz RCOSC and VIMS.CONTROL.PREFETCH = 0, there is 5 cycles
         CPUdelay(((uint32_t)(((us)*48.0) / 5.0)) - 1);
     }
 
-#include <driverlib/aon_rtc.h>
-
     static inline unsigned int seconds(void)
     {
         return AONRTCSecGet();
     }
-
-#include <driverlib/ioc.h>
 
     static inline void digitalToggle(uint8_t pin)
     { // protect?
@@ -178,8 +172,17 @@ extern "C"
     extern drv_t stdio_drv;
     void stdio_retarget(drv_t *p);
 
-    void powerOn(uint32_t domain, uint32_t periph, bool sleep, bool deep_sleep);
-    void powerOff(uint32_t domain, uint32_t periph);
+    // POWER
+    //void powerOn(uint32_t domain, uint32_t periph, bool sleep, bool deep_sleep);
+    //void powerOff(uint32_t domain, uint32_t periph);
+
+    // only domain (+/-)
+    bool soc_power_on_domain(uint32_t domain);
+    bool soc_power_off_domain(uint32_t domain);
+
+    // periphery and domain (+/-)
+    bool soc_power_on_periphery(uint32_t periphery, bool normal, bool sleep, bool deep);
+    bool soc_power_off_periphery(uint32_t periphery, bool normal, bool sleep, bool deep);
 
     // for SPI
     __attribute__((always_inline)) static inline uint32_t __RBIT(uint32_t value) // Bits in word
@@ -209,13 +212,16 @@ extern "C"
         return (result);
     }
 
+    // for debug
     void dmp_buf(const char *text, const unsigned char *buf, unsigned int len);
 #define DUMP(T, B, L) dmp_buf(T, (const unsigned char *)B, L) /* use printf() */
-#define PRINTF       ::printf
+#define PRINTF ::printf
 #define PRINT_FUNC() PRINTF("[] %s\n", __func__)
 
 #ifdef __cplusplus
 }
+
+// CPP functions
 
 #endif
 #endif /* INTERFACE_H_ */

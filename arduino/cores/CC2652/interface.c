@@ -140,59 +140,18 @@ void stdio_retarget(drv_t *p)
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 
-void powerOn(uint32_t domain, uint32_t periph, bool sleep, bool deep_sleep)
-{
-    if (domain)
-    {
-        PRCMPowerDomainOn(domain);
-        while (PRCMPowerDomainsAllOn(domain) != PRCM_DOMAIN_POWER_ON)
-            ;
-    }
-    if (periph)
-    {
-        PRCMPeripheralRunEnable(periph);
-        if (sleep)
-            PRCMPeripheralSleepEnable(periph);
-        if (deep_sleep)
-            PRCMPeripheralDeepSleepEnable(periph);
-        PRCMLoadSet();
-        while (!PRCMLoadGet())
-            ;
-    }
-}
-
-void powerOff(uint32_t domain, uint32_t periph)
-{
-    if (periph)
-    {
-        PRCMPeripheralRunDisable(periph);
-        PRCMPeripheralSleepDisable(periph);
-        PRCMPeripheralDeepSleepDisable(periph);
-        PRCMLoadSet();
-        while (!PRCMLoadGet())
-            ;
-    }
-
-    if (domain)
-    {
-        PRCMPowerDomainOff(domain);
-        while (PRCMPowerDomainsAllOff(domain) != PRCM_DOMAIN_POWER_ON)
-            ;
-    }
-}
-
-//////////////////////////////////////////////////////////////////////////
 #include <driverlib/trng.h>
-int rand(void) // need powerOff()
+int rand(void)
 {
-    bool once = true;
-    if (once)
+    int res = millis();
+    if (soc_power_on_periphery(PRCM_PERIPH_TRNG, 1, 0, 0))
     {
-        powerOn(PRCM_DOMAIN_PERIPH, PRCM_PERIPH_TRNG, false, false);
         TRNGConfigure(1 << 6, 1 << 8, 1); // min samp num: 2^6, max samp num: 2^8, cycles per sample 16
         TRNGEnable();
+        res += TRNGNumberGet(TRNG_LOW_WORD);
     }
-    return TRNGNumberGet(TRNG_LOW_WORD);
+    soc_power_off_periphery(PRCM_PERIPH_TRNG, 1, 0, 0);
+    return res;
 }
 
 void srand(unsigned __seed) {}

@@ -77,19 +77,19 @@ public:
     {
         if (enabled)
             end();
-
+#if 1 /* 0 for printf debug  soc_powers */
+        soc_power_on_periphery(ctx->peripheral, 1, 0, 0);
+#else
         PRCMPowerDomainOn(ctx->domain);
         while (PRCMPowerDomainsAllOn(ctx->domain) != PRCM_DOMAIN_POWER_ON)
             ;
-
         PRCMPeripheralRunEnable(ctx->peripheral);
         PRCMPeripheralSleepEnable(ctx->peripheral);
         PRCMPeripheralDeepSleepEnable(ctx->peripheral);
-
         PRCMLoadSet();
         while (!PRCMLoadGet())
             ;
-
+#endif
         IOCPinTypeUart(ctx->base, ctx->idRx, ctx->idTx, ctx->idCts, ctx->idRts);
 
         // TODO
@@ -125,6 +125,9 @@ public:
         UARTDisable(ctx->base);
         UARTIntUnregister(ctx->base);
         UARTIntDisable(ctx->base, UART_INT_RX | UART_INT_RT);
+#if 1
+        soc_power_off_periphery(ctx->peripheral, 1, 0, 0);
+#else
         IOCPortConfigureSet(ctx->idRx, IOC_PORT_GPIO, IOC_STD_INPUT);
         IOCPortConfigureSet(ctx->idTx, IOC_PORT_GPIO, IOC_STD_INPUT);
         PRCMPeripheralRunDisable(ctx->peripheral);
@@ -132,6 +135,7 @@ public:
         PRCMPeripheralDeepSleepDisable(ctx->peripheral);
         PRCMLoadSet();
         PRCMPowerDomainOff(ctx->domain);
+#endif
         rx_ring.clear();
     }
 
