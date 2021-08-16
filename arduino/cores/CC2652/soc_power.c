@@ -86,21 +86,21 @@ typedef struct
 } periphery_t;
 
 static periphery_t ctx_periphery[15] = {
-    {PRCM_PERIPH_TIMER0, -1, 0, 0, 0},                // TODO
-    {PRCM_PERIPH_TIMER1, -1, 0, 0, 0},                // TODO
-    {PRCM_PERIPH_TIMER2, -1, 0, 0, 0},                // TODO
-    {PRCM_PERIPH_TIMER3, -1, 0, 0, 0},                // TODO
-    {PRCM_PERIPH_SSI0, PRCM_DOMAIN_SERIAL, 0, 0, 0},  //
-    {PRCM_PERIPH_SSI1, PRCM_DOMAIN_PERIPH, 0, 0, 0},  //
-    {PRCM_PERIPH_UART0, PRCM_DOMAIN_SERIAL, 0, 0, 0}, //
-    {PRCM_PERIPH_UART1, PRCM_DOMAIN_PERIPH, 0, 0, 0}, //
-    {PRCM_PERIPH_I2C0, PRCM_DOMAIN_SERIAL, 0, 0, 0},  // TODO
-    {PRCM_PERIPH_CRYPTO, -1, 0, 0, 0},                // TODO
-    {PRCM_PERIPH_TRNG, PRCM_DOMAIN_PERIPH, 0, 0, 0},  //
-    {PRCM_PERIPH_PKA, -1, 0, 0, 0},                   // TODO
-    {PRCM_PERIPH_UDMA, -1, 0, 0, 0},                  // TODO
-    {PRCM_PERIPH_GPIO, PRCM_DOMAIN_PERIPH, 0, 0, 0},  //
-    {PRCM_PERIPH_I2S, -1, 0, 0, 0},                   // TODO
+    {PRCM_PERIPH_TIMER0, -1, 0, 0, 0},                 // TODO
+    {PRCM_PERIPH_TIMER1, -1, 0, 0, 0},                 // TODO
+    {PRCM_PERIPH_TIMER2, -1, 0, 0, 0},                 // TODO
+    {PRCM_PERIPH_TIMER3, -1, 0, 0, 0},                 // TODO
+    {PRCM_PERIPH_SSI0, PRCM_DOMAIN_SERIAL, 0, 0, 0},   //
+    {PRCM_PERIPH_SSI1, PRCM_DOMAIN_PERIPH, 0, 0, 0},   //
+    {PRCM_PERIPH_UART0, PRCM_DOMAIN_SERIAL, 0, 0, 0},  //
+    {PRCM_PERIPH_UART1, PRCM_DOMAIN_PERIPH, 0, 0, 0},  //
+    {PRCM_PERIPH_I2C0, PRCM_DOMAIN_SERIAL, 0, 0, 0},   // TODO
+    {PRCM_PERIPH_CRYPTO, PRCM_DOMAIN_PERIPH, 0, 0, 0}, //
+    {PRCM_PERIPH_TRNG, PRCM_DOMAIN_PERIPH, 0, 0, 0},   //
+    {PRCM_PERIPH_PKA, -1, 0, 0, 0},                    // TODO
+    {PRCM_PERIPH_UDMA, -1, 0, 0, 0},                   // TODO
+    {PRCM_PERIPH_GPIO, PRCM_DOMAIN_PERIPH, 0, 0, 0},   //
+    {PRCM_PERIPH_I2S, -1, 0, 0, 0},                    // TODO
 };
 
 bool soc_power_on_periphery(uint32_t periphery, bool normal, bool sleep, bool deep)
