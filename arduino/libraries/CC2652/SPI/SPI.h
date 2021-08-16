@@ -75,7 +75,7 @@ private:
     uint32_t _brg_hz;
     bool change;
     uint32_t base;
-    uint32_t domain;
+    //uint32_t domain;
     uint32_t periph;
 
 public:
@@ -87,7 +87,7 @@ public:
             _mosi = 10;
             _cs = 11;
             _sck = 12;
-            domain = PRCM_DOMAIN_SERIAL;
+            //domain = PRCM_DOMAIN_SERIAL;
             periph = PRCM_PERIPH_SSI0;
             base = SSI0_BASE;
         }
@@ -97,7 +97,7 @@ public:
             _mosi = 34;
             _cs = 35;
             _sck = 36;
-            domain = PRCM_DOMAIN_PERIPH;
+            //domain = PRCM_DOMAIN_PERIPH;
             periph = PRCM_PERIPH_SSI1;
             base = SSI1_BASE;
         }
@@ -109,10 +109,17 @@ public:
     }
 
     ~SPIClass() { end(); }
-    void end() { powerOff(0, periph); }
+
+    void end()
+    {
+        //powerOff(0, periph);
+        soc_power_off_periphery(periph, 1, 0, 0);
+    }
+
     void begin()
     {
-        powerOn(domain, periph, false, false);
+        //powerOn(domain, periph, false, false);
+        soc_power_on_periphery(periph, 1, 0, 0);
         IOCPinTypeSsiMaster(base, _miso, _mosi, _cs, _sck);
         beginTransaction(SPISettings());
     }

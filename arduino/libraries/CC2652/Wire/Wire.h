@@ -57,12 +57,14 @@ public:
     void end()
     {
         I2CMasterDisable(I2C0_BASE);
-        powerOff(0, PRCM_PERIPH_I2C0);
+        //powerOff(0, PRCM_PERIPH_I2C0);
+        soc_power_off_periphery(PRCM_PERIPH_I2C0, 1, 0, 0);
     }
 
     void begin()
     {
-        powerOn(PRCM_DOMAIN_SERIAL, PRCM_PERIPH_I2C0, false, false);
+        //powerOn(PRCM_DOMAIN_SERIAL, PRCM_PERIPH_I2C0, false, false);
+        soc_power_on_periphery(PRCM_PERIPH_I2C0, 1, 0, 0);
         IOCPinTypeI2c(I2C0_BASE, 13, 14);
         I2CMasterIntClear(I2C0_BASE);
         I2CMasterEnable(I2C0_BASE);
