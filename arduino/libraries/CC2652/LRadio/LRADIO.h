@@ -4,7 +4,7 @@
 #include "LRADIO_DEF.h"
 #include <rf_patches/rf_patch_cpe_ieee_802_15_4.h>
 
-#define RADIO_PRINTF 
+#define RADIO_PRINTF
 //printf
 
 enum
@@ -844,7 +844,7 @@ private:
     }
 
     /* User settings */
-    uint16_t _Panid;
+    uint16_t _PanID;
     uint16_t _Address;
     uint8_t _Channel;
     int8_t _Power;
@@ -871,14 +871,10 @@ public:
         cbTxStarted = NULL;
         cbTxDone = NULL;
         cbRxDone = NULL;
-        _Panid = aPanid;
+        _PanID = aPanid;
         _Address = aAddress;
-        _Channel = aChannel;
         _Power = aPower;
-        if (_Channel < CC2652_CHANNEL_MIN)
-            _Channel = CC2652_CHANNEL_MIN;
-        if (_Channel > CC2652_CHANNEL_MAX)
-            _Channel = CC2652_CHANNEL_MAX;
+        setChannel(aChannel);
         GetIeeeEui64(ExtendedAddress);
     }
 
@@ -898,7 +894,7 @@ public:
         RadioError res = ERROR_RADIO_NONE;
         if (false == RadioIsEnabled())
         {
-            RadioSetPanId(_Panid);
+            RadioSetPanId(_PanID);
             RadioSetShortAddress(_Address);
             if (ERROR_RADIO_NONE == (res = RadioSetTransmitPower(_Power)))
                 if (ERROR_RADIO_NONE == (res = RadioEnable())) // power on
@@ -948,17 +944,23 @@ public:
         }
     }
 
-    inline void setPanId(uint16_t aPanid)
+    inline uint16_t getPanID() { return _PanID; }
+
+    inline void setPanID(uint16_t aPanid)
     {
-        _Panid = aPanid;
+        _PanID = aPanid;
         RadioSetPanId(aPanid);
     }
+
+    inline uint16_t getShortAddress() { return _Address; }
 
     inline void setShortAddress(uint16_t aAddress)
     {
         _Address = aAddress;
         RadioSetShortAddress(aAddress);
     }
+
+    inline int8_t getTransmitPower() { return _Power; }
 
     RadioError setTransmitPower(int8_t aPower)
     {
@@ -970,10 +972,22 @@ public:
     }
 
     inline uint8_t *getExtendedAddress() { return ExtendedAddress; }
+
     inline uint64_t getEUI64() { return ReadUint64Le(ExtendedAddress); }
 
     inline int8_t getRssi() { return sRfStats.maxRssi; }
 
+    inline uint8_t getChannel() { return _Channel; }
+
+    void setChannel(uint8_t aChannel)
+    {
+        _Channel = aChannel;
+        if (_Channel < CC2652_CHANNEL_MIN)
+            _Channel = CC2652_CHANNEL_MIN;
+        if (_Channel > CC2652_CHANNEL_MAX)
+            _Channel = CC2652_CHANNEL_MAX;
+    }
+    
     /* go to rx mode */
     inline RadioError receive() { return RadioReceive(_Channel); }
 
