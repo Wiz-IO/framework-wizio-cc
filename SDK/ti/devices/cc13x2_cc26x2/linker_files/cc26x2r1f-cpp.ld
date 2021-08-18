@@ -36,6 +36,9 @@
   THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
   (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
   OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+
+  * -Xlinker --defsym=EEPROM_SIZE=0x2000
 */
 
 /* Entry Point */
@@ -62,6 +65,8 @@ _estack = ORIGIN(SRAM) + LENGTH(SRAM); /*end of SRAM .*/
 _Min_Heap_Size = 0;
 _Min_Stack_Size = 0x100;
 
+EEPROM_SIZE = DEFINED(EEPROM_SIZE) ? EEPROM_SIZE : 0x0000; /* block size 8k (0x2000) */
+EEPROM_SIZE = EEPROM_SIZE > 0x2000 ? 0x2000 : EEPROM_SIZE; /* limit to one block */
 
 /* Section allocation in memory */
 SECTIONS
@@ -115,6 +120,8 @@ SECTIONS
         PROVIDE_HIDDEN (__fini_array_end = .);        
     } > FLASH
 
+
+
     .data :
     {
         _data = .;
@@ -137,6 +144,14 @@ SECTIONS
         __HeapStart = .;           
     } > SRAM
 
+
+    .eeprom (NOLOAD):
+    {
+        . = ALIGN(0x2000); /* block size */
+        _start_eeprom = .;
+        . = . + EEPROM_SIZE;
+        _end_eeprom = .;
+    } > FLASH
 
 
     .ccfg :
