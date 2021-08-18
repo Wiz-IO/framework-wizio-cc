@@ -1,6 +1,7 @@
 
-EEPROM MAX SIZE 8192 !!!
+**EEPROM MAX SIZE 8192 !!!
 
+EXAMPLE
 ```C
 #include <Arduino.h>
 #include <EEPROM.h>
@@ -19,7 +20,7 @@ void eeprom_test()
   EEPROM.write(1, 42);
   EEPROM.write(2, 43);
   EEPROM.write(3, 44);
-  if (EEPROM.commit())
+  if (EEPROM.commit()) // save to flash
   {
     printf("[EEP] read: %u\n", (int)EEPROM.read(0));
     printf("[EEP] read: %u\n", (int)EEPROM.read(1));
