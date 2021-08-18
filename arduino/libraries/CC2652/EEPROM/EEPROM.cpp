@@ -20,22 +20,30 @@
 
 #include <Arduino.h>
 #include "EEPROM.h"
+#include <driverlib/flash.h>
 
-extern "C" uint8_t _start_eeprom; // TODO
+#define EEPROM_PRINTF 
+//::printf
+
+extern "C" uint8_t _start_eeprom;
+extern "C" uint8_t disableFlashCache(void);
+extern "C" void restoreFlashCache(uint8_t mode);
+
+#define EEPROM_BLOCK_SIZE 0x2000
 
 EEPROMClass::EEPROMClass(void)
     : _sector(&_start_eeprom)
 {
-    while ((int)_start_eeprom % 0x2000) // align protect
+    while ((int)&_start_eeprom % EEPROM_BLOCK_SIZE) // align protect
     {
     }
 }
 
 void EEPROMClass::begin(size_t size)
 {
-    if ((size <= 0) || (size > 0x2000))
+    if ((size <= 0) || (size > EEPROM_BLOCK_SIZE))
     {
-        size = 0x2000;
+        size = EEPROM_BLOCK_SIZE;
     }
 
     _size = (size + 255) & (~255); // Flash writes limited to 256 byte boundaries
@@ -53,7 +61,7 @@ void EEPROMClass::begin(size_t size)
 
     memcpy(_data, _sector, _size);
 
-    _dirty = false; //make sure dirty is cleared in case begin() is called 2nd+ time
+    _dirty = false; // Make sure dirty is cleared in case begin() is called 2nd+ time
 }
 
 bool EEPROMClass::end()
@@ -80,27 +88,18 @@ bool EEPROMClass::end()
 uint8_t EEPROMClass::read(int const address)
 {
     if (address < 0 || (size_t)address >= _size)
-    {
         return 0;
-    }
     if (!_data)
-    {
         return 0;
-    }
-
     return _data[address];
 }
 
 void EEPROMClass::write(int const address, uint8_t const value)
 {
     if (address < 0 || (size_t)address >= _size)
-    {
         return;
-    }
     if (!_data)
-    {
         return;
-    }
 
     // Optimise _dirty. Only flagged if data written is different.
     uint8_t *pData = &_data[address];
@@ -113,22 +112,39 @@ void EEPROMClass::write(int const address, uint8_t const value)
 
 bool EEPROMClass::commit()
 {
+    bool res = false;
     if (!_size)
-        return false;
+        return res;
     if (!_dirty)
-        return true;
+        return res;
     if (!_data)
-        return false;
+        return res;
 
     noInterrupts();
+    uint8_t mode = disableFlashCache();
 
-    //FlashSectorErase((intptr_t)_sector - (intptr_t)BASE, 0x2000);     // TODO
+    if (FAPI_STATUS_SUCCESS == FlashSectorErase((intptr_t)_sector))
+    {
+        EEPROM_PRINTF("[EEPROM] FlashSectorErase() %p\n", _sector);
+        if (FAPI_STATUS_SUCCESS != FlashProgram(_data, (intptr_t)_sector, _size))
+        {
+            EEPROM_PRINTF("[ERROR] FlashProgram() %p, %p, %u\n", _data, _sector, (int)_size);
+        }
+        else
+        {
+            EEPROM_PRINTF("[EEPROM] FlashProgram() %p, %p, %u\n", _data, _sector, (int)_size);
+            res = true;
+        }
+    }
+    else
+    {
+        EEPROM_PRINTF("[ERROR] FlashSectorErase() %p\n", _sector);
+    }
 
-    //FlashProgram((intptr_t)_sector - (intptr_t)BASE, _data, _size);   // TODO
-
+    restoreFlashCache(mode);
     interrupts();
 
-    return true;
+    return res;
 }
 
 uint8_t *EEPROMClass::getDataPtr()
