@@ -19,6 +19,9 @@
 #include <Arduino.h>
 
 #include <driverlib/prcm.h>
+#include <driverlib/aux_adc.h>
+#include <driverlib/aux_sysif.h>
+
 static void gpio_on(void)
 {
     static bool on = false;
@@ -130,11 +133,20 @@ void analogInit(uint8_t adc_channel)
     // TODO
 }
 
+/* analogRead(ADC_0 ... ADC_7) variant.h */
 int analogRead(uint8_t adc_channel)
 {
-    // ADC
-    // TODO
-    return 0;
+    AUXSYSIFOpModeChange(AUX_SYSIF_OPMODE_TARGET_A);
+    AUXADCEnableSync(AUXADC_REF_FIXED, AUXADC_SAMPLE_TIME_170_US, AUXADC_TRIGGER_MANUAL);
+    AUXADCFlushFifo();
+    AUXADCSelectInput(adc_channel);
+    AUXADCGenManualTrigger();
+    while (AUXADCGetFifoStatus() & AUXADC_FIFO_EMPTY_M)
+        ;
+    uint32_t sample = AUXADCPopFifo();
+    AUXADCDisable();
+    AUXSYSIFOpModeChange(AUX_SYSIF_OPMODE_TARGET_PDLP);
+    return sample;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////
