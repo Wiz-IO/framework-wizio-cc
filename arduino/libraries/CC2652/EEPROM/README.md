@@ -4,7 +4,6 @@ EEPROM MAX SIZE 8192 !!!
 ```C
 #include <Arduino.h>
 #include <EEPROM.h>
-#include <SMesh.h>
 
 extern "C" int _start_eeprom; // only for debug
 void eeprom_test()
