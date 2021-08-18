@@ -28,9 +28,18 @@ extern "C"
 
     /* C ware ********************************************************/
 
-#define LED 7 /* ??? */
+#define LED 7 
 #define LED_GREEN 7
 #define LED_RED 6
+
+#define ADC_7 0x09 /* ADC_COMPB_IN_AUXIO7 */
+#define ADC_6 0x0A /* ADC_COMPB_IN_AUXIO6 */
+#define ADC_5 0x0B /* ADC_COMPB_IN_AUXIO5 */
+#define ADC_4 0x0C /* ADC_COMPB_IN_AUXIO4 */
+#define ADC_3 0x0D /* ADC_COMPB_IN_AUXIO3 */
+#define ADC_2 0x0E /* ADC_COMPB_IN_AUXIO2 */
+#define ADC_1 0x0F /* ADC_COMPB_IN_AUXIO1 */
+#define ADC_0 0x10 /* ADC_COMPB_IN_AUXIO0 */
 
 #ifdef __cplusplus
 }
