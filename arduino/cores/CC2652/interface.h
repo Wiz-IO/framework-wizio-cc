@@ -141,7 +141,7 @@ extern "C"
         CPUdelay(((uint32_t)(((us)*48.0) / 5.0)) - 1);
     }
 
-    static inline unsigned int seconds(void)
+    static inline unsigned int seconds(void) // helper
     {
         return AONRTCSecGet();
     }
@@ -160,6 +160,8 @@ extern "C"
     { // protect?
         return GPIO_readDio(pin);
     }
+
+    void blink(int pin, uint32_t timeout); // helper, ONLY one led
 
     // STDIO
     typedef struct

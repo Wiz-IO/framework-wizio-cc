@@ -68,6 +68,17 @@ void pinMode(uint8_t pin /*IOID_XX*/, uint8_t mode)
     }
 }
 
+// ONLY one led
+void blink(int led, uint32_t timeout)
+{
+    static uint32_t start = 0;
+    if (millis() - start > timeout)
+    {
+        start = millis();
+        digitalToggle(led);
+    }
+}
+
 ////////////////////////////////////////////////////////////////////////////////////////
 
 static void irq_gpio_callback(uint gpio, uint32_t events)

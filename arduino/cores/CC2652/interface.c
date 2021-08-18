@@ -155,3 +155,27 @@ int rand(void)
 }
 
 void srand(unsigned __seed) {}
+
+#include <driverlib/vims.h>
+uint8_t disableFlashCache(void)
+{
+    uint8_t mode = VIMSModeGet(VIMS_BASE);
+    VIMSLineBufDisable(VIMS_BASE);
+    if (mode != VIMS_MODE_DISABLED)
+    {
+        VIMSModeSet(VIMS_BASE, VIMS_MODE_DISABLED);
+        while (VIMSModeGet(VIMS_BASE) != VIMS_MODE_DISABLED)
+            ;
+    }
+
+    return (mode);
+}
+
+void restoreFlashCache(uint8_t mode)
+{
+    if (mode != VIMS_MODE_DISABLED)
+    {
+        VIMSModeSet(VIMS_BASE, VIMS_MODE_ENABLED);
+    }
+    VIMSLineBufEnable(VIMS_BASE);
+}
