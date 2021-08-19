@@ -880,8 +880,7 @@ private:
 
     uint8_t ExtendedAddress[OT_EXT_ADDRESS_SIZE];
 
-public:
-    LRadio(uint16_t aPanid, uint16_t aAddress, uint8_t aChannel = CC2652_CHANNEL_MIN, int8_t aPower = 0 /* dbm see rgOutputPower[] table */)
+    void init(uint16_t aPanid, uint16_t aAddress, uint8_t aChannel = CC2652_CHANNEL_MIN, int8_t aPower = 0 /* dbm see rgOutputPower[] table */)
     {
         //void cc2652RadioInit(void)
         ////void rfCoreInitReceiveParams(void)
@@ -902,6 +901,17 @@ public:
         _Power = aPower;
         setChannel(aChannel);
         GetIeeeEui64(ExtendedAddress);
+    }
+
+public:
+    LRadio(uint16_t aPanid, uint16_t aAddress, uint8_t aChannel = CC2652_CHANNEL_MIN, int8_t aPower = 0 /* dbm see rgOutputPower[] table */)
+    {
+        init(aPanid, aAddress, aChannel, aPower);
+    }
+
+    LRadio(uint16_t aPanid, uint8_t aChannel = CC2652_CHANNEL_MIN, int8_t aPower = 0)
+    {
+        init(aPanid, 0, aChannel, aPower);
     }
 
     ~LRadio() { RadioDisable(); }
