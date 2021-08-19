@@ -6,7 +6,7 @@
 #include <driverlib/osc.h>
 #include <inc/hw_ccfg.h>
 
-#define RADIO_PRINTF
+#define RADIO_PRINTF 
 //printf
 
 enum
@@ -86,7 +86,7 @@ typedef struct RadioFrame
     void *mUser; /* [WizIO] for Transmit frame user callback variable */
 } RadioFrame;
 
-// PACKED !!
+// PACKED !!!
 typedef struct ExtAddress_s
 {
     uint8_t m8[OT_EXT_ADDRESS_SIZE]; ///< IEEE 802.15.4 Extended Address bytes
@@ -113,6 +113,7 @@ static __attribute__((aligned(4))) dataQueue_t sRxDataQueue = {0, 0};
 typedef void (*HandleTxStarted)(RadioFrame *aFrame);
 typedef void (*HandleTxDone)(RadioFrame *aFrame, RadioFrame *aAckFrame, RadioError aError);
 typedef void (*HandleReceiveDone)(RadioFrame *aFrame);
+typedef void (*HandleEnergyScanDone)(int8_t rssi);
 
 class LRadio
 {
@@ -122,6 +123,7 @@ protected:
     __attribute__((aligned(4))) rfc_CMD_FS_POWERDOWN_t sFsPowerdownCmd;
     __attribute__((aligned(4))) rfc_CMD_SYNC_START_RAT_t sStartRatCmd;
     __attribute__((aligned(4))) rfc_CMD_SYNC_STOP_RAT_t sStopRatCmd;
+    __attribute__((aligned(4))) rfc_CMD_IEEE_ED_SCAN_t sEdScanCmd;
 
     __attribute__((aligned(4))) ext_src_match_data_t sSrcMatchExtData;
     __attribute__((aligned(4))) short_src_match_data_t sSrcMatchShortData;
@@ -135,6 +137,14 @@ protected:
     inline uint_fast8_t rfCoreExecuteAbortCmd(void) { return (RFCDoorbellSendTo(CMDR_DIR_CMD(CMD_ABORT)) & 0xFF); }
 
     inline uint_fast8_t rfCoreExecutePingCmd(void) { return (RFCDoorbellSendTo(CMDR_DIR_CMD(CMD_PING)) & 0xFF); }
+
+    uint_fast8_t rfCoreSendEdScanCmd(uint8_t aChannel, uint16_t aDurrationMs)
+    {
+        sEdScanCmd = cEdScanCmd;
+        sEdScanCmd.channel = aChannel;
+        sEdScanCmd.endTime = aDurrationMs * (CC2652_RAT_TICKS_PER_SEC / 1000);
+        return (RFCDoorbellSendTo((uint32_t)&sEdScanCmd) & 0xFF);
+    }
 
     uint_fast8_t rfCoreSendTransmitCmd(uint8_t *aPsdu, uint8_t aLen)
     {
@@ -621,6 +631,27 @@ private:
             cbRxDone(aFrame);
     }
 
+    void CB_RadioEnergyScanDone(int8_t rssi)
+    {
+        // TODO
+        //RADIO_PRINTF("[RADIO] %s( %d )\n", __func__, (int)rssi);
+        if (cbScDone)
+            cbScDone(rssi);
+    }
+
+    RadioError RadioEnergyScan(uint8_t aScanChannel, uint16_t aScanDuration)
+    {
+        RadioError error = ERROR_RADIO_BUSY;
+        if (sState == cc2652_stateSleep)
+        {
+            sState = cc2652_stateEdScan;
+            EXPECT_ACTION(rfCoreSendEdScanCmd(aScanChannel, aScanDuration) == CMDSTA_Done, error = ERROR_RADIO_FAILED);
+            error = ERROR_RADIO_NONE;
+        }
+    exit:
+        return error;
+    }
+
     RadioError RadioTransmit(RadioFrame *aFrame)
     {
         RadioError error = ERROR_RADIO_BUSY;
@@ -877,6 +908,7 @@ private:
     HandleTxStarted cbTxStarted;
     HandleTxDone cbTxDone;
     HandleReceiveDone cbRxDone;
+    HandleEnergyScanDone cbScDone;
 
     uint8_t ExtendedAddress[OT_EXT_ADDRESS_SIZE];
 
@@ -896,6 +928,8 @@ private:
         cbTxStarted = NULL;
         cbTxDone = NULL;
         cbRxDone = NULL;
+        cbScDone = NULL;
+
         _PanID = aPanid;
         _Address = aAddress;
         _Power = aPower;
@@ -942,6 +976,18 @@ public:
 
     void process(void)
     {
+        if (sState == cc2652_stateEdScan)
+        {
+            if (sEdScanCmd.status == IEEE_DONE_OK)
+            {
+                CB_RadioEnergyScanDone(sEdScanCmd.maxRssi);
+            }
+            else if (sEdScanCmd.status == ACTIVE)
+            {
+                CB_RadioEnergyScanDone(CC2652_INVALID_RSSI);
+            }
+        }
+
         if (sState == cc2652_stateReceive || sState == cc2652_stateTransmit)
         {
             rfProcessReceiveQueue();
@@ -1077,5 +1123,16 @@ public:
                 res = transmit(&frame);
         }
         return res;
+    }
+
+    RadioError scanEnergy(uint8_t aChannel, uint16_t aDurrationMs, HandleEnergyScanDone callback = NULL)
+    {
+        cbScDone = callback;
+        RadioError res = ERROR_RADIO_FAILED;
+        rfCoreExecuteAbortCmd(); // TODO
+        sState == cc2652_stateSleep;
+        res = RadioEnergyScan(aChannel, aDurrationMs);
+        RADIO_PRINTF("[RADIO] %s() res = %d\n", __func__, res);
+        return res == CMDSTA_Done ? ERROR_RADIO_NONE : ERROR_RADIO_FAILED;
     }
 };

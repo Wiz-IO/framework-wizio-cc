@@ -75,6 +75,7 @@ extern "C"
 
     //////////////////////////////////////////////////////////////////////////////////
 
+    extern const rfc_CMD_IEEE_ED_SCAN_t cEdScanCmd;
     extern const rfc_CMD_IEEE_RX_t cReceiveCmd;
     extern const rfc_CMD_IEEE_CSMA_t cCsmacaBackoffCmd;
     extern const rfc_CMD_IEEE_TX_t cTransmitCmd;

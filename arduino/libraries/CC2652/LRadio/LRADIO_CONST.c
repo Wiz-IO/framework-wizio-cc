@@ -1,5 +1,30 @@
 #include "LRADIO_DEF.h"
 
+const rfc_CMD_IEEE_ED_SCAN_t cEdScanCmd =
+    {
+        .commandNo = CMD_IEEE_ED_SCAN,
+        .startTrigger =
+            {
+                .triggerType = TRIG_NOW,
+            },
+        .condition = {
+            .rule = COND_NEVER,
+        },
+        .ccaOpt = {
+            .ccaEnEnergy = 1,
+            .ccaEnCorr = 1,
+            .ccaEnSync = 1,
+            .ccaCorrOp = 1,
+            .ccaSyncOp = 0,
+            .ccaCorrThr = 3,
+        },
+        .ccaRssiThr = -90,
+        .endTrigger = {
+            .triggerType = TRIG_REL_START,
+            .pastTrig = 1,
+        },
+};
+
 const rfc_CMD_IEEE_CSMA_t cCsmacaBackoffCmd =
     {
         .commandNo = CMD_IEEE_CSMA,
