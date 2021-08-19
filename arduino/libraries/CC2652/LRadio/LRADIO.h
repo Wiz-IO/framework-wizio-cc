@@ -3,6 +3,8 @@
 #include <interface.h>
 #include "LRADIO_DEF.h"
 #include <rf_patches/rf_patch_cpe_ieee_802_15_4.h>
+#include <driverlib/osc.h>
+#include <inc/hw_ccfg.h>
 
 #define RADIO_PRINTF
 //printf
@@ -83,6 +85,12 @@ typedef struct RadioFrame
 
     void *mUser; /* [WizIO] for Transmit frame user callback variable */
 } RadioFrame;
+
+// PACKED !!
+typedef struct ExtAddress_s
+{
+    uint8_t m8[OT_EXT_ADDRESS_SIZE]; ///< IEEE 802.15.4 Extended Address bytes
+} ExtAddress_t;
 
 static cc2652_PhyState_t sState = cc2652_stateDisabled;
 static RadioError sTransmitError = ERROR_RADIO_FAILED;
@@ -772,6 +780,24 @@ private:
         return;
     }
 
+    void RadioSetExtendedAddress(const ExtAddress_t *aAddress)
+    {
+        if (sState == cc2652_stateReceive)
+        {
+            EXPECT(rfCoreExecuteAbortCmd() == CMDSTA_Done);
+            sReceiveCmd.localExtAddr = ReadUint64Le(aAddress->m8);
+            EXPECT(rfCoreClearReceiveQueue(&sRxDataQueue) == CMDSTA_Done);
+            EXPECT(rfCoreSendReceiveCmd() == CMDSTA_Done);
+            sState = cc2652_stateReceive;
+        }
+        else if (sState != cc2652_stateTransmit)
+        {
+            sReceiveCmd.localExtAddr = ReadUint64Le(aAddress->m8);
+        }
+    exit:
+        return;
+    }
+
     RadioError RadioSetTransmitPower(int8_t aPower)
     {
         unsigned int i;
@@ -971,6 +997,13 @@ public:
         return res;
     }
 
+    void setExtendedAddress(uint8_t addr[OT_EXT_ADDRESS_SIZE])
+    {
+        if (addr)
+            memcpy(ExtendedAddress, addr, OT_EXT_ADDRESS_SIZE);
+        RadioSetExtendedAddress((ExtAddress_t *)ExtendedAddress);
+    }
+
     inline uint8_t *getExtendedAddress() { return ExtendedAddress; }
 
     inline uint64_t getEUI64() { return ReadUint64Le(ExtendedAddress); }
@@ -987,7 +1020,7 @@ public:
         if (_Channel > CC2652_CHANNEL_MAX)
             _Channel = CC2652_CHANNEL_MAX;
     }
-    
+
     /* go to rx mode */
     inline RadioError receive() { return RadioReceive(_Channel); }
 
