@@ -6,7 +6,7 @@
 #include <driverlib/osc.h>
 #include <inc/hw_ccfg.h>
 
-#define RADIO_PRINTF 
+#define RADIO_PRINTF
 //printf
 
 enum
@@ -938,7 +938,7 @@ private:
     }
 
 public:
-    LRadio(uint16_t aPanid, uint16_t aAddress, uint8_t aChannel = CC2652_CHANNEL_MIN, int8_t aPower = 0 /* dbm see rgOutputPower[] table */)
+    LRadio(uint16_t aPanid, uint16_t aAddress, uint8_t aChannel = CC2652_CHANNEL_MIN, int8_t aPower = 0)
     {
         init(aPanid, aAddress, aChannel, aPower);
     }
@@ -1053,7 +1053,7 @@ public:
         return res;
     }
 
-    void setExtendedAddress(uint8_t addr[OT_EXT_ADDRESS_SIZE])
+    void setExtendedAddress(uint8_t *addr = NULL /* from rom */)
     {
         if (addr)
             memcpy(ExtendedAddress, addr, OT_EXT_ADDRESS_SIZE);
@@ -1077,7 +1077,6 @@ public:
             _Channel = CC2652_CHANNEL_MAX;
     }
 
-    /* go to rx mode */
     inline RadioError receive() { return RadioReceive(_Channel); }
 
     inline RadioFrame *getTransmitBuffer() { return &sTransmitFrame; }
@@ -1113,14 +1112,13 @@ public:
         RadioError res = ERROR_RADIO_INVALID_PARAM;
         if (buffer && size)
         {
-            RadioFrame frame;
-            memset(&frame, 0, sizeof(RadioFrame));
-            frame.mPsdu = buffer;
-            frame.mLength = size + 2;
+            memset(&sTransmitFrame, 0, sizeof(RadioFrame));
+            sTransmitFrame.mPsdu = buffer;
+            sTransmitFrame.mLength = size + 2;
             if (timeout_ms)
-                res = transmitWait(&frame, timeout_ms);
+                res = transmitWait(&sTransmitFrame, timeout_ms);
             else
-                res = transmit(&frame);
+                res = transmit(&sTransmitFrame);
         }
         return res;
     }
@@ -1132,7 +1130,7 @@ public:
         rfCoreExecuteAbortCmd(); // TODO
         sState == cc2652_stateSleep;
         res = RadioEnergyScan(aChannel, aDurrationMs);
-        RADIO_PRINTF("[RADIO] %s() res = %d\n", __func__, res);
+        //RADIO_PRINTF("[RADIO] %s() res = %d\n", __func__, res);
         return res == CMDSTA_Done ? ERROR_RADIO_NONE : ERROR_RADIO_FAILED;
     }
 };
