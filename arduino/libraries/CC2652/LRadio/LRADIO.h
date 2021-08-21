@@ -6,7 +6,7 @@
 #include <driverlib/osc.h>
 #include <inc/hw_ccfg.h>
 
-#define RADIO_PRINTF
+#define RADIO_PRINTF 
 //printf
 
 enum
@@ -83,7 +83,8 @@ typedef struct RadioFrame
         } mRxInfo;
     } mInfo;
 
-    void *mUser; /* [WizIO] for Transmit frame user callback variable */
+    void *mUser;        /* [WizIO] for Transmit frame user callback variable */
+    RadioError txError; /* [WizIO] for Transmit sync timeout */
 } RadioFrame;
 
 // PACKED !!!
@@ -619,6 +620,7 @@ private:
     void CB_RadioTxDone(RadioFrame *aFrame, RadioFrame *aAckFrame, RadioError aError)
     {
         //RADIO_PRINTF("[RADIO] %s( %d )\n", __func__, (int)aError);
+        aFrame->txError = aError;
         if (cbTxDone)
             cbTxDone(aFrame, aAckFrame, aError);
     }
@@ -1085,20 +1087,20 @@ public:
 
     RadioError transmitWait(RadioFrame *aFrame, uint32_t timeout_ms = 1000)
     {
-        RadioError res = ERROR_RADIO_INVALID_PARAM;
-        HandleTxDone backupTxDone = cbTxDone;
+        //RADIO_PRINTF("[RADIO] %s()\n", __func__);
+        RadioError res = ERROR_RADIO_INVALID_PARAM;        
         if (aFrame)
         {
+            HandleTxDone backupTxDone = cbTxDone;
             cbTxDone = NULL; // disable user callback
             if (ERROR_RADIO_NONE == (res = transmit(aFrame)))
             {
                 res = ERROR_RADIO_TIMEOUT;
-                aFrame->mUser = &res;
                 uint32_t start = millis();
                 do
                 {
                     process();
-                    if (ERROR_RADIO_TIMEOUT != (res = *(RadioError *)aFrame->mUser))
+                    if (ERROR_RADIO_TIMEOUT != (res = aFrame->txError))
                         break;
                 } while (millis() - start < timeout_ms);
             }
@@ -1112,7 +1114,7 @@ public:
         RadioError res = ERROR_RADIO_INVALID_PARAM;
         if (buffer && size)
         {
-            memset(&sTransmitFrame, 0, sizeof(RadioFrame));
+            //memset(&sTransmitFrame, 0, sizeof(RadioFrame));
             sTransmitFrame.mPsdu = buffer;
             sTransmitFrame.mLength = size + 2;
             if (timeout_ms)
@@ -1120,6 +1122,7 @@ public:
             else
                 res = transmit(&sTransmitFrame);
         }
+        //RADIO_PRINTF("[RADIO] %s( %d )\n", __func__, (int)res);
         return res;
     }
 
