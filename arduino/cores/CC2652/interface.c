@@ -144,17 +144,20 @@ void stdio_retarget(drv_t *p)
 int rand(void)
 {
     int res = millis();
-    if (soc_power_on_periphery(PRCM_PERIPH_TRNG, 1, 0, 0))
+#if 1
     {
         TRNGConfigure(1 << 6, 1 << 8, 1); // min samp num: 2^6, max samp num: 2^8, cycles per sample 16
         TRNGEnable();
         res += TRNGNumberGet(TRNG_LOW_WORD);
     }
-    soc_power_off_periphery(PRCM_PERIPH_TRNG, 1, 0, 0);
+#endif
+    //printf("[RND] %s[ %d ]\n", __func__, res);
     return res;
 }
 
 void srand(unsigned __seed) {}
+
+///////////////////////////////////////////////////////////////////////////////////////////
 
 #include <driverlib/vims.h>
 uint8_t disableFlashCache(void)

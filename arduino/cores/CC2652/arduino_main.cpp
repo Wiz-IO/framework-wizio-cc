@@ -75,6 +75,9 @@ int main(void)
         AONRTCEnable();
     }
 
+    // Enable TRNG
+    soc_power_on_periphery(PRCM_PERIPH_TRNG, 1, 0, 0);
+
     // ARDUINO
     initVariant();
     setup();

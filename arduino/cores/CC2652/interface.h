@@ -217,7 +217,7 @@ extern "C"
     // for debug
     void dmp_buf(const char *text, const unsigned char *buf, unsigned int len);
 #define DUMP(T, B, L) dmp_buf(T, (const unsigned char *)B, L) /* use printf() */
-#define PRINTF ::printf
+#define PRINTF printf
 #define PRINT_FUNC() PRINTF("[] %s\n", __func__)
 
 #ifdef __cplusplus
