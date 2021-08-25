@@ -64,7 +64,8 @@ typedef enum RadioError
 
 typedef struct RadioFrame
 {
-    uint8_t *mPsdu;   ///< The PSDU.
+    uint8_t *mPsdu; ///< The PSDU.
+    uint8_t *mRAW;
     uint16_t mLength; ///< Length of the PSDU.
     uint8_t mChannel; ///< Channel used to transmit/receive the frame.
 
@@ -283,6 +284,7 @@ protected:
                 if (crcCorr->status.bCrcErr == 0 && (len - 2) < OT_RADIO_FRAME_MAX_SIZE)
                 {
                     receiveFrame.mLength = len;
+                    receiveFrame.mRAW = &(payload[0]); // WizIO
                     receiveFrame.mPsdu = &(payload[1]);
                     receiveFrame.mChannel = sReceiveCmd.channel;
                     receiveFrame.mInfo.mRxInfo.mRssi = rssi;
@@ -868,10 +870,9 @@ private:
      * It may be easier to have the caller of this function store the IEEE
      * address in network byte order.
      */
+        //for (i = 0; i < OT_EXT_ADDRESS_SIZE; i++) aIeeeEui64[i] = eui64[(OT_EXT_ADDRESS_SIZE - 1) - i];
         for (i = 0; i < OT_EXT_ADDRESS_SIZE; i++)
-        {
-            aIeeeEui64[i] = eui64[(OT_EXT_ADDRESS_SIZE - 1) - i];
-        }
+            aIeeeEui64[i] = eui64[i];
     }
 
     /* User settings */
@@ -915,11 +916,6 @@ public:
     LRadio(uint16_t aPanid, uint16_t aAddress, uint8_t aChannel = CC2652_CHANNEL_MIN, int8_t aPower = 0)
     {
         init(aPanid, aAddress, aChannel, aPower);
-    }
-
-    LRadio(uint16_t aPanid, uint8_t aChannel = CC2652_CHANNEL_MIN, int8_t aPower = 0)
-    {
-        init(aPanid, 0, aChannel, aPower);
     }
 
     ~LRadio() { RadioDisable(); }
