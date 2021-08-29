@@ -43,6 +43,9 @@ extern "C"
 #include <driverlib/prcm.h>
 #include <driverlib/ioc.h>
 #include <driverlib/aon_rtc.h>
+#include <driverlib/trng.h>
+#include <driverlib/vims.h>
+#include <driverlib/uart.h>
 
     typedef void (*voidFuncPtr)(void);
     typedef void (*voidFuncPtrParam)(void *);
@@ -217,6 +220,10 @@ extern "C"
     // for debug
     void dmp_buf(const char *text, const unsigned char *buf, unsigned int len);
 #define DUMP(T, B, L) dmp_buf(T, (const unsigned char *)B, L) /* use printf() */
+
+    void dmp_line(const unsigned char *buf, unsigned int len);
+#define DUMP_LINE(B, L) dmp_line((const unsigned char *)B, L) /* use printf() */
+
 #define PRINTF printf
 #define PRINT_FUNC() PRINTF("[] %s\n", __func__)
 

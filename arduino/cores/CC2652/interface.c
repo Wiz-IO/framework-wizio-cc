@@ -17,8 +17,6 @@
 ////////////////////////////////////////////////////////////////////////////////////////
 
 #include "interface.h"
-#include <driverlib/uart.h>
-#include <driverlib/prcm.h>
 
 /* NEWLIB SYSCALLS */
 
@@ -140,18 +138,19 @@ void stdio_retarget(drv_t *p)
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 
-#include <driverlib/trng.h>
 int rand(void)
 {
     int res = millis();
 #if 1
     {
-        TRNGConfigure(1 << 6, 1 << 8, 1); // min samp num: 2^6, max samp num: 2^8, cycles per sample 16
-        TRNGEnable();
+        if (0 == HWREGBITW(TRNG_BASE + TRNG_O_CTL, TRNG_CTL_TRNG_EN_BITN))
+        {
+            TRNGConfigure(1 << 6, 1 << 8, 1); // min samp num: 2^6, max samp num: 2^8, cycles per sample 16
+            TRNGEnable();
+        }
         res += TRNGNumberGet(TRNG_LOW_WORD);
     }
 #endif
-    //printf("[RND] %s[ %d ]\n", __func__, res);
     return res;
 }
 
@@ -159,7 +158,6 @@ void srand(unsigned __seed) {}
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 
-#include <driverlib/vims.h>
 uint8_t disableFlashCache(void)
 {
     uint8_t mode = VIMSModeGet(VIMS_BASE);

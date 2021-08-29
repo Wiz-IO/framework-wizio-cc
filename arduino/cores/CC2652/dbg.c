@@ -37,3 +37,23 @@ void dmp_buf(const char *text, const unsigned char *buf, unsigned int len)
         printf(bufferDump);
     }
 }
+
+void dmp_line(const unsigned char *buf, unsigned int len)
+{
+    unsigned int i, idx = 0;
+    snprintf(bufferDump + idx, sizeof(bufferDump) - idx, "[DLINE] (%u bytes)", len);
+    printf(bufferDump);
+    if (len > 64)
+        len = 64;
+    idx = 0;
+    for (i = 0; i < len; i++)
+    {
+        if (i > 64)
+            break;
+        idx += snprintf(bufferDump + idx, sizeof(bufferDump) - idx, " %02X", (unsigned int)buf[i]);
+    }
+    printf(bufferDump);
+    if (len > 64)
+        printf(" ...");
+    printf("\n");
+}
