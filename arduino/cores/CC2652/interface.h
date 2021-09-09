@@ -47,6 +47,8 @@ extern "C"
 #include <driverlib/vims.h>
 #include <driverlib/uart.h>
 
+#include "hard_trap.h"
+
     typedef void (*voidFuncPtr)(void);
     typedef void (*voidFuncPtrParam)(void *);
 

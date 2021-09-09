@@ -13,7 +13,7 @@ void dmp_buf(const char *text, const unsigned char *buf, unsigned int len)
     memset(txt, 0, sizeof(txt));
     for (i = 0; i < len; i++)
     {
-        if (i >= 4096)
+        if (i >= sizeof(bufferDump))
             break;
         if (i % 16 == 0)
         {

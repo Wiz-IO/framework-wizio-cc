@@ -58,6 +58,9 @@ private:
     drv_t stdio;
 
 public:
+    // return UARTx_BASE for debug
+    uint32_t getBase(){ return ctx->base; }
+
     Uart(uint8_t id)
     {
         if (id >= SERIALS)
