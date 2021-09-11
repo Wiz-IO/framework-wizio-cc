@@ -52,7 +52,7 @@
 #include <inc/hw_rfc_pwr.h>
 #include <rf_patches/rf_patch_cpe_ieee_802_15_4.h>
 
-#define RADIO_PRINTF printf
+#define RADIO_PRINTF /* printf */
 
 #define UNUSED_VARIABLE(V) (void)V
 
