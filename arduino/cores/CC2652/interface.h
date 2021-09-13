@@ -227,7 +227,8 @@ extern "C"
 #define DUMP_LINE(B, L) dmp_line((const unsigned char *)B, L) /* use printf() */
 
 #define PRINTF printf
-#define PRINT_FUNC() PRINTF("[] %s\n", __func__)
+#define PRINT_FUNC() PRINTF("[] %s()\n", __func__)
+#define PRINT_ERROR_FUNC() PRINTF("[ERROR] %s()\n", __func__)
 
 #ifdef __cplusplus
 }
