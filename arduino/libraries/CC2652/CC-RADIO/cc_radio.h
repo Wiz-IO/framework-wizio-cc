@@ -152,6 +152,7 @@ enum
 
 void RadioInit(void);
 void RadioProcess(void);
+void RadioProcessReceiveQueue(void);
 
 void RadioSetPanId(uint16_t aPanid);
 void RadioSetShortAddress(uint16_t aAddress);
@@ -161,6 +162,10 @@ uint64_t RadioReadUint64Le(const uint8_t *aSource);
 uint64_t RadioGetExtendedAddress(void);
 
 bool RadioIsEnabled(void);
+bool RadioIsActive(void);
+bool RadioIsRecive(void);
+int  RadioGetState(void);
+
 RadioError RadioEnable(void);
 RadioError RadioDisable(void);
 RadioError RadioSleep(void);
@@ -189,6 +194,7 @@ void RadioTxStarted(RadioFrame *);
 void RadioTxDone(RadioFrame *, RadioFrame *, RadioError);
 void RadioEnergyScanDone(int8_t);
 
+// init
 bool RadioBegin(uint8_t Channel, int8_t Power);
 
 #endif // CC_RADIO_H_

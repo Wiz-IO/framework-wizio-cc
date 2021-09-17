@@ -52,7 +52,7 @@
 #include <inc/hw_rfc_pwr.h>
 #include <rf_patches/rf_patch_cpe_ieee_802_15_4.h>
 
-#define RADIO_PRINTF /* printf */
+#define RADIO_PRINTF printf
 
 #define UNUSED_VARIABLE(V) (void)V
 
@@ -280,7 +280,7 @@ static void rfCoreInitReceiveParams(void)
             .bAutoFlushCrc          = 1,
             .bAutoFlushIgn          = 0,
             .bIncludePhyHdr         = 0,
-            .bIncludeCrc            = 0,
+            .bIncludeCrc            = 0,//
             .bAppendRssi            = 1,
             .bAppendCorrCrc         = 1,
             .bAppendSrcInd          = 0,
@@ -292,7 +292,7 @@ static void rfCoreInitReceiveParams(void)
             .frameFiltStop          = 1,
             .autoAckEn              = 1,
             .slottedAckEn           = 0,
-            .autoPendEn             = 0,
+            .autoPendEn             = 0,//
             .defaultPend            = 0,
             .bPendDataReqOnly       = 0,
             .bPanCoord              = 0,
@@ -679,7 +679,7 @@ static uint_fast8_t rfCoreSendTransmitCmd(uint8_t *aPsdu, uint8_t aLen)
 
     sCsmacaBackoffCmd = cCsmacaBackoffCmd;
     /* initialize the random state with a true random seed for the radio core's psudo rng */
-    sCsmacaBackoffCmd.randomState = rand();
+    sCsmacaBackoffCmd.randomState = (uint16_t)rand();
     sCsmacaBackoffCmd.pNextOp = (rfc_radioOp_t *)&sTransmitCmd;
 
     sTransmitCmd = cTransmitCmd;
@@ -687,8 +687,11 @@ static uint_fast8_t rfCoreSendTransmitCmd(uint8_t *aPsdu, uint8_t aLen)
     sTransmitCmd.payloadLen = aLen;
     sTransmitCmd.pPayload = aPsdu;
 
+    //sTransmitRxAckCmd.seqNo = 0;
     if (aPsdu[0] & IEEE802154_ACK_REQUEST)
     {
+        //RADIO_PRINTF("      TRANSMIT WITH ACK\n");
+        //DUMP_LINE(aPsdu, aLen);
         /* setup the receive ack command to follow the tx command */
         sTransmitCmd.condition.rule = COND_STOP_ON_FALSE;
         sTransmitCmd.pNextOp = (rfc_radioOp_t *)&sTransmitRxAckCmd;
@@ -1258,10 +1261,10 @@ exit:
 /**
  * Function documented in platform/radio.h
  */
-bool RadioIsEnabled(void)
-{
-    return (sState != cc2652_stateDisabled);
-}
+bool RadioIsEnabled(void) { return (sState != cc2652_stateDisabled); }
+bool RadioIsActive(void)  { return (sState > cc2652_stateSleep);     }
+bool RadioIsRecive(void)  { return (sState == cc2652_stateReceive);  }
+int  RadioGetState(void)  { return sState; }
 
 /**
  * Function documented in platform/radio.h
@@ -1879,7 +1882,7 @@ static void RadioProcessReceiveDone(RadioFrame *aReceiveFrame, RadioError aRecei
     }
 }
 
-static void RadioProcessReceiveQueue(void)
+void RadioProcessReceiveQueue(void)
 {
     rfc_ieeeRxCorrCrc_t *crcCorr;
     rfc_dataEntryGeneral_t *curEntry, *startEntry;
