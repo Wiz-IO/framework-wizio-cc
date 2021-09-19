@@ -1183,8 +1183,7 @@ static void RFCCPE0IntHandler(void)
             }
             else
             {
-                /* The TX command was either stopped or we are not looking for
-                 * an ack */
+                /* The TX command was either stopped or we are not looking for an ack */
                 switch (sTransmitCmd.status)
                 {
                 case IEEE_DONE_OK:
@@ -1262,9 +1261,11 @@ exit:
  * Function documented in platform/radio.h
  */
 bool RadioIsEnabled(void) { return (sState != cc2652_stateDisabled); }
-bool RadioIsActive(void)  { return (sState > cc2652_stateSleep);     }
-bool RadioIsRecive(void)  { return (sState == cc2652_stateReceive);  }
-int  RadioGetState(void)  { return sState; }
+bool RadioIsActive(void) { return (sState > cc2652_stateSleep); }
+bool RadioStateIsRecive(void) { return (sState == cc2652_stateReceive); }
+bool RadioStateIsTransmit(void) { return (sState == cc2652_stateTransmit); }
+int RadioGetState(void) { return sState; }
+bool RadioIsTxDone(void) { return sTxCmdChainDone; }
 
 /**
  * Function documented in platform/radio.h
@@ -1445,10 +1446,10 @@ RadioFrame *RadioGetTransmitBuffer(void)
 RadioError RadioTransmit(RadioFrame *aFrame)
 {
     RadioError error = ERROR_RADIO_BUSY;
-    aFrame->mTxError = ERROR_RADIO_TIMEOUT; // WizIO
 
     if (sState == cc2652_stateReceive)
     {
+        aFrame->mTxError = ERROR_RADIO_TIMEOUT; // WizIO
         sState = cc2652_stateTransmit;
 
         /* removing 2 bytes of CRC placeholder because we generate that in hardware */
@@ -1460,6 +1461,27 @@ RadioError RadioTransmit(RadioFrame *aFrame)
     }
 
 exit:
+    return error;
+}
+
+RadioError RadioTransmitEx(RadioFrame *aFrame)
+{
+    RadioError error = ERROR_RADIO_INVALID_ARGS;
+    if (aFrame)
+    {
+        unsigned int start = millis();
+        if (ERROR_RADIO_NONE == (error = RadioTransmit(aFrame)))
+        {
+            while (false == sTxCmdChainDone) // RadioIsTxDone()
+            {
+                if ((millis() - start) > 1000)
+                {
+                    return ERROR_RADIO_TIMEOUT;
+                }
+            }
+            error = ERROR_RADIO_NONE; // now the frame is transmited
+        }
+    }
     return error;
 }
 

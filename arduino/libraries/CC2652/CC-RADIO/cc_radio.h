@@ -6,6 +6,7 @@
 #include <stdbool.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <inc/hw_rfc_rat.h>
 
 typedef enum RadioError
 {
@@ -163,8 +164,10 @@ uint64_t RadioGetExtendedAddress(void);
 
 bool RadioIsEnabled(void);
 bool RadioIsActive(void);
-bool RadioIsRecive(void);
+bool RadioStateIsRecive(void);
+bool RadioStateIsTransmit(void);
 int  RadioGetState(void);
+bool RadioIsTxDone(void);
 
 RadioError RadioEnable(void);
 RadioError RadioDisable(void);
@@ -174,6 +177,7 @@ RadioError RadioSetTransmitPower(int8_t aPower);
 RadioError RadioGetTransmitPower(int8_t *aPower);
 RadioFrame *RadioGetTransmitBuffer(void);
 RadioError RadioTransmit(RadioFrame *aFrame);
+RadioError RadioTransmitEx(RadioFrame *aFrame);
 RadioError RadioEnergyScan(uint8_t aScanChannel, uint16_t aScanDuration);
 
 int8_t RadioGetRssi(void);
@@ -196,5 +200,8 @@ void RadioEnergyScanDone(int8_t);
 
 // init
 bool RadioBegin(uint8_t Channel, int8_t Power);
+
+// 4MHz timer
+static inline uint32_t RadioGetTimer(){ return HWREG(RFC_RAT_BASE + RFC_RAT_O_RATCNT); }
 
 #endif // CC_RADIO_H_
