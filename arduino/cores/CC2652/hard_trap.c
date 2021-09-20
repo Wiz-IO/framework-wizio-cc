@@ -14,7 +14,7 @@ void Hard_Fault_Handler(uint32_t stack[])
 {
     static char msg[80];
     //if((CoreDebug->DHCSR & 0x01) != 0) {
-    printErrorMsg("In Hard Fault Handler\n");
+    printErrorMsg("\n\n[ERROR] Hard Fault Handler\n");
     sprintf(msg, "SCB->HFSR = 0x%08x\n", (int)SCB->HFSR);
     printErrorMsg(msg);
     if ((SCB->HFSR & (1 << 30)) != 0)

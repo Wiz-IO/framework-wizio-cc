@@ -156,12 +156,6 @@ int analogRead(uint8_t adc_channel)
 
 volatile uint32_t msTicks; /* counts 1 msec */
 
-void SysTickIntHandler(void)
-{
-    msTicks++;
-    //GPIO_writeDio(30, msTicks & 1);
-}
-
 void SysTickSetup(void)
 {
     unsigned long clockval;
@@ -174,15 +168,36 @@ void SysTickSetup(void)
     SysTickIntEnable();
 }
 
-unsigned int micros(void)
+extern void xPortSysTickHandler(void);
+extern int xTaskGetSchedulerState(void);
+extern void vTaskDelay(const uint32_t);
+
+void SysTickIntHandler(void)
 {
-    return 0; // TODO ???
+    msTicks++;
+#ifdef USE_FREERTOS
+    xPortSysTickHandler();
+#endif
 }
 
-void delay(unsigned int ms)
+unsigned int micros(void) { return 0; /* TODO ??? */ }
+
+static inline void sDelay(unsigned int ms)
 {
     uint32_t curTicks = msTicks;
     while ((msTicks - curTicks) < ms)
     {
     }
+}
+
+void delay(unsigned int ms)
+{
+#ifdef USE_FREERTOS
+    if (xTaskGetSchedulerState() != 1) // taskSCHEDULER_NOT_STARTED
+        sDelay(ms);
+    else
+        vTaskDelay(ms);
+#else
+    sDelay(ms);
+#endif
 }
