@@ -24,6 +24,8 @@
  *  CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
  *  ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  *  POSSIBILITY OF SUCH DAMAGE.
+ * 
+ * MOD: Georgi Angelov 2021
  */
 
 /**
@@ -690,8 +692,6 @@ static uint_fast8_t rfCoreSendTransmitCmd(uint8_t *aPsdu, uint8_t aLen)
     //sTransmitRxAckCmd.seqNo = 0;
     if (aPsdu[0] & IEEE802154_ACK_REQUEST)
     {
-        //RADIO_PRINTF("      TRANSMIT WITH ACK\n");
-        //DUMP_LINE(aPsdu, aLen);
         /* setup the receive ack command to follow the tx command */
         sTransmitCmd.condition.rule = COND_STOP_ON_FALSE;
         sTransmitCmd.pNextOp = (rfc_radioOp_t *)&sTransmitRxAckCmd;
@@ -1226,9 +1226,6 @@ void RadioInit(void)
     sState = cc2652_stateDisabled;
 }
 
-/**
- * Function documented in platform/radio.h
- */
 RadioError RadioEnable(void)
 {
     RadioError error = ERROR_RADIO_BUSY;
@@ -1257,19 +1254,6 @@ exit:
     return error;
 }
 
-/**
- * Function documented in platform/radio.h
- */
-bool RadioIsEnabled(void) { return (sState != cc2652_stateDisabled); }
-bool RadioIsActive(void) { return (sState > cc2652_stateSleep); }
-bool RadioStateIsRecive(void) { return (sState == cc2652_stateReceive); }
-bool RadioStateIsTransmit(void) { return (sState == cc2652_stateTransmit); }
-int RadioGetState(void) { return sState; }
-bool RadioIsTxDone(void) { return sTxCmdChainDone; }
-
-/**
- * Function documented in platform/radio.h
- */
 RadioError RadioDisable(void)
 {
     RadioError error = ERROR_RADIO_BUSY;
@@ -1292,9 +1276,37 @@ RadioError RadioDisable(void)
     return error;
 }
 
-/**
- * Function documented in platform/radio.h
- */
+RadioError RadioSleep(void)
+{
+    RadioError error = ERROR_RADIO_BUSY;
+
+    if (sState == cc2652_stateSleep)
+    {
+        error = ERROR_RADIO_NONE;
+    }
+    else if (sState == cc2652_stateReceive)
+    {
+        if (rfCoreExecuteAbortCmd() != CMDSTA_Done)
+        {
+            error = ERROR_RADIO_BUSY;
+        }
+        else
+        {
+            sState = cc2652_stateSleep;
+            error = ERROR_RADIO_NONE;
+        }
+    }
+
+    return error;
+}
+
+bool RadioIsEnabled(void) { return (sState != cc2652_stateDisabled); }
+bool RadioIsActive(void) { return (sState > cc2652_stateSleep); }
+bool RadioStateIsRecive(void) { return (sState == cc2652_stateReceive); }
+bool RadioStateIsTransmit(void) { return (sState == cc2652_stateTransmit); }
+bool RadioIsTxDone(void) { return sTxCmdChainDone; }
+int RadioGetState(void) { return sState; }
+
 RadioError RadioEnergyScan(uint8_t aScanChannel, uint16_t aScanDuration)
 {
     RadioError error = ERROR_RADIO_BUSY;
@@ -1310,9 +1322,6 @@ exit:
     return error;
 }
 
-/**
- * Function documented in platform/radio.h
- */
 RadioError RadioGetTransmitPower(int8_t *aPower)
 {
     RadioError error = ERROR_RADIO_NONE;
@@ -1324,9 +1333,6 @@ exit:
     return error;
 }
 
-/**
- * Function documented in platform/radio.h
- */
 RadioError RadioSetTransmitPower(int8_t aPower)
 {
     unsigned int i;
@@ -1349,13 +1355,10 @@ RadioError RadioSetTransmitPower(int8_t aPower)
     return ERROR_RADIO_NONE;
 }
 
-/**
- * Function documented in platform/radio.h
- */
 RadioError RadioReceive(uint8_t aChannel)
 {
     RADIO_PRINTF("[RADIO] %s( CHANNEL = %d )\n", __func__, (int)aChannel);
-    
+
     if (aChannel < CC2652_CHANNEL_MIN || aChannel > CC2652_CHANNEL_MAX)
         return ERROR_RADIO_INVALID_ARGS;
 
@@ -1405,44 +1408,8 @@ exit:
     return error;
 }
 
-/**
- * Function documented in platform/radio.h
- */
-RadioError RadioSleep(void)
-{
-    RadioError error = ERROR_RADIO_BUSY;
+RadioFrame *RadioGetTransmitBuffer(void) { return &sTransmitFrame; }
 
-    if (sState == cc2652_stateSleep)
-    {
-        error = ERROR_RADIO_NONE;
-    }
-    else if (sState == cc2652_stateReceive)
-    {
-        if (rfCoreExecuteAbortCmd() != CMDSTA_Done)
-        {
-            error = ERROR_RADIO_BUSY;
-        }
-        else
-        {
-            sState = cc2652_stateSleep;
-            error = ERROR_RADIO_NONE;
-        }
-    }
-
-    return error;
-}
-
-/**
- * Function documented in platform/radio.h
- */
-RadioFrame *RadioGetTransmitBuffer(void)
-{
-    return &sTransmitFrame;
-}
-
-/**
- * Function documented in platform/radio.h
- */
 RadioError RadioTransmit(RadioFrame *aFrame)
 {
     RadioError error = ERROR_RADIO_BUSY;
@@ -1476,6 +1443,7 @@ RadioError RadioTransmitEx(RadioFrame *aFrame)
             {
                 if ((millis() - start) > 1000)
                 {
+                    RADIO_PRINTF("[ERROR] RADIO TIMEOUT\n");
                     return ERROR_RADIO_TIMEOUT;
                 }
             }
@@ -1485,26 +1453,17 @@ RadioError RadioTransmitEx(RadioFrame *aFrame)
     return error;
 }
 
-/**
- * Function documented in platform/radio.h
- */
 int8_t RadioGetRssi(void)
 {
     return sRfStats.maxRssi;
 }
 
-/**
- * Function documented in platform/radio.h
- */
 RadioCaps RadioGetCaps(void)
 {
 
     return (RadioCaps)(RADIO_CAPS_ACK_TIMEOUT | RADIO_CAPS_ENERGY_SCAN | RADIO_CAPS_TRANSMIT_RETRIES | RADIO_CAPS_CSMA_BACKOFF);
 }
 
-/**
- * Function documented in platform/radio.h
- */
 void RadioEnableSrcMatch(bool aEnable)
 {
 
@@ -1520,9 +1479,6 @@ void RadioEnableSrcMatch(bool aEnable)
     }
 }
 
-/**
- * Function documented in platform/radio.h
- */
 RadioError RadioAddSrcMatchShortEntry(uint16_t aShortAddress)
 {
 
@@ -1553,9 +1509,6 @@ exit:
     return error;
 }
 
-/**
- * Function documented in platform/radio.h
- */
 RadioError RadioClearSrcMatchShortEntry(uint16_t aShortAddress)
 {
 
@@ -1582,9 +1535,6 @@ exit:
     return error;
 }
 
-/**
- * Function documented in platform/radio.h
- */
 RadioError RadioAddSrcMatchExtEntry(const ExtAddress *aExtAddress)
 {
 
@@ -1615,9 +1565,6 @@ exit:
     return error;
 }
 
-/**
- * Function documented in platform/radio.h
- */
 RadioError RadioClearSrcMatchExtEntry(const ExtAddress *aExtAddress)
 {
 
@@ -1644,9 +1591,6 @@ exit:
     return error;
 }
 
-/**
- * Function documented in platform/radio.h
- */
 void RadioClearSrcMatchShortEntries(void)
 {
 
@@ -1670,9 +1614,6 @@ exit:
     return;
 }
 
-/**
- * Function documented in platform/radio.h
- */
 void RadioClearSrcMatchExtEntries(void)
 {
 
@@ -1696,9 +1637,6 @@ exit:
     return;
 }
 
-/**
- * Function documented in platform/radio.h
- */
 bool RadioGetPromiscuous(void)
 {
 
@@ -1706,9 +1644,6 @@ bool RadioGetPromiscuous(void)
     return sReceiveCmd.frameFiltOpt.frameFiltEn == 0;
 }
 
-/**
- * Function documented in platform/radio.h
- */
 void RadioSetPromiscuous(bool aEnable)
 {
 
@@ -1739,9 +1674,6 @@ uint64_t RadioReadUint64Le(const uint8_t *aSource)
     return value;
 }
 
-/**
- * Function documented in platform/radio.h
- */
 void RadioInitExtAddress(uint8_t *aIeeeEui64)
 {
     uint8_t *eui64;
@@ -1779,7 +1711,8 @@ void RadioInitExtAddress(uint8_t *aIeeeEui64)
      * address in network byte order.
      */
     ////for (i = 0; i < EXT_ADDRESS_SIZE; i++) aIeeeEui64[i] = eui64[(EXT_ADDRESS_SIZE - 1) - i];
-    for (i = 0; i < EXT_ADDRESS_SIZE; i++) aIeeeEui64[i] = eui64[i]; // revers
+    for (i = 0; i < EXT_ADDRESS_SIZE; i++)
+        aIeeeEui64[i] = eui64[i]; // revers
 }
 
 /**
@@ -1990,9 +1923,6 @@ void RadioProcessReceiveQueue(void)
     } while (curEntry != startEntry);
 }
 
-/**
- * Function documented in platform-cc2652.h
- */
 void RadioProcess(void)
 {
     if (sState == cc2652_stateEdScan)
@@ -2033,7 +1963,7 @@ int8_t RadioGetReceiveSensitivity(void)
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-ExtAddress ExtendedAddress;
+ExtAddress ExtendedAddress; // [8]
 
 uint64_t RadioGetExtendedAddress(void)
 {
@@ -2052,7 +1982,8 @@ bool RadioBegin(uint8_t Channel, int8_t Power)
         {
             if (ERROR_RADIO_NONE == (res = RadioEnable()))
             {
-                res = RadioReceive(Channel);
+                if (Channel >= CC2652_CHANNEL_MIN && Channel <= CC2652_CHANNEL_MAX)
+                    res = RadioReceive(Channel);
             }
             else
             {
