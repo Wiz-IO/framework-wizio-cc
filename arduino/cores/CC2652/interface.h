@@ -43,6 +43,7 @@ extern "C"
 #include <driverlib/prcm.h>
 #include <driverlib/ioc.h>
 #include <driverlib/aon_rtc.h>
+#include <driverlib/aon_batmon.h>
 #include <driverlib/trng.h>
 #include <driverlib/vims.h>
 #include <driverlib/uart.h>
