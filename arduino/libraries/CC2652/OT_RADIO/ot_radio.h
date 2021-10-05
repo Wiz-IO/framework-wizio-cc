@@ -1114,6 +1114,7 @@ otError otPlatRadioConfigureEnhAckProbing(
 
 void cc2652RadioInit(void);
 void cc2652RadioProcess();
+void otSetRxUser(void * user);
 
 
 #ifdef __cplusplus

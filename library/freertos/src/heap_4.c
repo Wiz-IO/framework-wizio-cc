@@ -75,7 +75,9 @@ uint32_t ucHeapSize(void) { return (uint32_t)&_estack - (uint32_t)&_Min_Stack_Si
 
 #else
 
-    PRIVILEGED_DATA static uint8_t ucHeap[ configTOTAL_HEAP_SIZE ];
+    PRIVILEGED_DATA 
+    __attribute__ ((section(".heap")))
+    static uint8_t ucHeap[ configTOTAL_HEAP_SIZE ];
 
 #endif /* configAPPLICATION_ALLOCATED_HEAP */
 

@@ -75,15 +75,16 @@ extern "C"
 
     //////////////////////////////////////////////////////////////////////////////////
 
-    extern const rfc_CMD_IEEE_ED_SCAN_t cEdScanCmd;
-    extern const rfc_CMD_IEEE_RX_t cReceiveCmd;
-    extern const rfc_CMD_IEEE_CSMA_t cCsmacaBackoffCmd;
-    extern const rfc_CMD_IEEE_TX_t cTransmitCmd;
-    extern const rfc_CMD_IEEE_RX_ACK_t cTransmitRxAckCmd;
-    extern const rfc_CMD_SYNC_START_RAT_t cStartRatCmd;
-    extern const rfc_CMD_RADIO_SETUP_t cRadioSetupCmd;
-    extern const rfc_CMD_FS_POWERDOWN_t cFsPowerdownCmd;
-    extern const rfc_CMD_SYNC_STOP_RAT_t cStopRatCmd;
+    /* COMMANDS */
+    extern const rfc_CMD_IEEE_ED_SCAN_t c_EdScanCmd;
+    extern const rfc_CMD_IEEE_RX_t c_ReceiveCmd;
+    extern const rfc_CMD_IEEE_CSMA_t c_CsmacaBackoffCmd;
+    extern const rfc_CMD_IEEE_TX_t c_TransmitCmd;
+    extern const rfc_CMD_IEEE_RX_ACK_t c_TransmitRxAckCmd;
+    extern const rfc_CMD_SYNC_START_RAT_t c_StartRatCmd;
+    extern const rfc_CMD_RADIO_SETUP_t c_RadioSetupCmd;
+    extern const rfc_CMD_FS_POWERDOWN_t c_FsPowerdownCmd;
+    extern const rfc_CMD_SYNC_STOP_RAT_t c_StopRatCmd;
 
     extern const output_config_t rgOutputPower[15];
 #define OUTPUT_CONFIG_COUNT (sizeof(rgOutputPower) / sizeof(rgOutputPower[0]))
