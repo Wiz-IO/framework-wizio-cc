@@ -14,7 +14,7 @@ public:
     virtual ~RF(){};
     virtual void begin();
 
-    void powerOn(uint32_t mode = PRCM_RFCMODESEL_CURR_MODE1 /*BLE*/)
+    void powerOn(uint32_t mode = PRCM_RFCMODESEL_CURR_MODE5) // PRCM_RFCMODESEL_CURR_MODE1 /* BLE */
     {
         PRCMPowerDomainOff(PRCM_DOMAIN_RFCORE);
         PRCMLoadSet();
@@ -23,6 +23,7 @@ public:
         }
 
         HWREG(PRCM_BASE + PRCM_O_RFCMODESEL) = mode;
+
         // Power on RF core
         PRCMPowerDomainOn(PRCM_DOMAIN_RFCORE);
         while (PRCMPowerDomainsAllOn(PRCM_DOMAIN_RFCORE) != PRCM_DOMAIN_POWER_ON)
@@ -40,62 +41,73 @@ public:
         {
         }
 
-        // Enablde RF clocks
-        // NOTE: This line was copypasted from SysCtrlPowerEverything
-        HWREG(RFC_PWR_NONBUF_BASE + RFC_PWR_O_PWMCLKEN) = 0x7FF;
-
         // Wait for it...
         PRCMLoadSet();
         while (!PRCMLoadGet())
         {
         }
 
+        /* Let CPE boot */
+        RFCClockEnable();
+
         isOn = true;
-        DBG_RF("[RF] POWER ON\n");
+        isOn = ping();
+        DBG_RF("[RF] POWER %s\n", isOn ? "ON" : "OFF");
     }
 
-    int executeCommand(uint32_t pCmd)
+    // true if CMDSTA_Done
+    bool executeCommand(uint32_t pCmd)
     {
-        /* If the RF core is ON, we can send the command */
         if (isOn)
         {
-            /* Submit the command to the doorbell */
-            uint32_t doorbell_status = RFCDoorbellSendTo(pCmd);
-            DBG_RF("[RF] DOORBELL STATUS = %lu\n", doorbell_status);
-
-            /* Check the return value of the RF core through the CMDSTA register within the doorbell */
-            if ((doorbell_status & 0xFF) == CMDSTA_Done)
+            uint32_t res = RFCDoorbellSendTo(pCmd);
+            if (res != CMDSTA_Done)
             {
-                /* The command was accepted */
-                return 0;
+                volatile rfc_radioOp_t *command = (rfc_radioOp_t *)pCmd;
+                DBG_RF("[RF] CMD = %X, DOORBELL = %X\n", (int)command->status, (int)res);
             }
-            else
-            {
-                /* The command was rejected */
-                return -2;
-            }
+            return res == CMDSTA_Done;
         }
-        else
-        {
-            /* The RF core is not capable of receiving the command */
-            return -1;
-        }
+        return false;
     }
 
-    uint32_t waitCommandDone(uint32_t pCmd)
+    // return command status
+    uint32_t waitDone(uint32_t pCmd)
     {
         volatile rfc_radioOp_t *command = (rfc_radioOp_t *)pCmd;
-        uint32_t timeout_cnt = 0;
-        /* 0xn4nn=DONE, 0x0400 = DONE_OK while all other "DONE" values means done but with some kind of error (ref. "Common radio operation status codes") */
+        uint32_t timeout = 0;
+        /* 0xn4nn = DONE, 0x0400 = DONE_OK while all other "DONE" values means done but with some kind of error (ref. "Common radio operation status codes") */
         do
         {
-            if (++timeout_cnt > 500000)
+            if (++timeout > 500000)
             {
-                DBG_RF("[ERROR] RF TIMEOUT\n");
-                return -1;
+                DBG_RF("[ERROR] TIMEOUT CMD: %X STAT: %X\n", (int)command->commandNo, (int)command->status);
+                return -1; // timeout
             }
         } while (!(command->status & 0x400));
-        DBG_RF("[RF] COMMAND STATUS = 0x%X\n", (int)command->status);
+
+        if (command->status != DONE_OK)
+        {
+            DBG_RF("[ERROR] STAT = 0x%X\n", (int)command->status);
+        }
         return command->status;
+    }
+
+    bool execute(uint32_t cmd, bool wait = true)
+    {
+        bool res = executeCommand(cmd);
+        if (res && wait)
+            return DONE_OK == waitDone((uint32_t)cmd);
+        return res;
+    }
+
+    bool ping(void)
+    {
+        return execute(CMDR_DIR_CMD(CMD_PING), false);
+    }
+
+    bool abort(void)
+    {
+        return execute(CMDR_DIR_CMD(CMD_ABORT), false);
     }
 };

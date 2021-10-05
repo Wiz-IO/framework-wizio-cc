@@ -64,8 +64,7 @@ typedef enum RadioError
 
 typedef struct RadioFrame
 {
-    uint8_t *mPsdu; ///< The PSDU.
-    uint8_t *mRAW;
+    uint8_t *mPsdu;   ///< The PSDU.
     uint16_t mLength; ///< Length of the PSDU.
     uint8_t mChannel; ///< Channel used to transmit/receive the frame.
 
@@ -97,12 +96,6 @@ static RadioError sTransmitError = ERROR_RADIO_FAILED;
 static unsigned int sTransmitRetryCount = 0;
 static bool sTxCmdChainDone = false;
 
-static __attribute__((aligned(4))) rfc_CMD_IEEE_RX_t sReceiveCmd;
-
-static __attribute__((aligned(4))) rfc_CMD_IEEE_CSMA_t sCsmacaBackoffCmd;
-static __attribute__((aligned(4))) rfc_CMD_IEEE_TX_t sTransmitCmd;
-static __attribute__((aligned(4))) rfc_CMD_IEEE_RX_ACK_t sTransmitRxAckCmd;
-
 #define RX_BUF_SIZE 144
 static __attribute__((aligned(4))) uint8_t sRxBuf0[RX_BUF_SIZE];
 static __attribute__((aligned(4))) uint8_t sRxBuf1[RX_BUF_SIZE];
@@ -115,6 +108,11 @@ typedef void (*HandleTxStarted)(RadioFrame *aFrame);
 typedef void (*HandleTxDone)(RadioFrame *aFrame, RadioFrame *aAckFrame, RadioError aError);
 typedef void (*HandleReceiveDone)(RadioFrame *aFrame, RadioError aError);
 typedef void (*HandleEnergyScanDone)(int8_t rssi);
+
+static __attribute__((aligned(4))) rfc_CMD_IEEE_RX_t sReceiveCmd;
+static __attribute__((aligned(4))) rfc_CMD_IEEE_CSMA_t sCsmacaBackoffCmd;
+static __attribute__((aligned(4))) rfc_CMD_IEEE_TX_t sTransmitCmd;
+static __attribute__((aligned(4))) rfc_CMD_IEEE_RX_ACK_t sTransmitRxAckCmd;
 
 class LRadio
 {
@@ -129,7 +127,6 @@ protected:
     __attribute__((aligned(4))) ext_src_match_data_t sSrcMatchExtData;
     __attribute__((aligned(4))) short_src_match_data_t sSrcMatchShortData;
     __attribute__((aligned(4))) rfc_ieeeRxOutput_t sRfStats;
-
     __attribute__((aligned(4))) uint8_t sTransmitPsdu[OT_RADIO_FRAME_MAX_SIZE];
 
     output_config_t const *sCurrentOutputPower = &(rgOutputPower[0]);
@@ -141,7 +138,7 @@ protected:
 
     uint_fast8_t rfCoreSendEdScanCmd(uint8_t aChannel, uint16_t aDurrationMs)
     {
-        sEdScanCmd = cEdScanCmd;
+        //sEdScanCmd = cEdScanCmd;
         sEdScanCmd.channel = aChannel;
         sEdScanCmd.endTime = aDurrationMs * (CC2652_RAT_TICKS_PER_SEC / 1000);
         return (RFCDoorbellSendTo((uint32_t)&sEdScanCmd) & 0xFF);
@@ -152,14 +149,14 @@ protected:
         /* reset retry count */
         sTransmitRetryCount = 0;
 
-        sCsmacaBackoffCmd = cCsmacaBackoffCmd;
+        //sCsmacaBackoffCmd = cCsmacaBackoffCmd;
         //memcpy(&sCsmacaBackoffCmd, &cCsmacaBackoffCmd, sizeof(cCsmacaBackoffCmd));
 
         /* initialize the random state with a true random seed for the radio core's psudo rng */
         sCsmacaBackoffCmd.randomState = rand();
         sCsmacaBackoffCmd.pNextOp = (rfc_radioOp_t *)&sTransmitCmd;
 
-        sTransmitCmd = cTransmitCmd;
+        //sTransmitCmd = cTransmitCmd;
         //memcpy(&sTransmitCmd, &cTransmitCmd, sizeof(cTransmitCmd));
 
         /* no need to look for an ack if the tx operation was stopped */
@@ -171,7 +168,7 @@ protected:
             sTransmitCmd.condition.rule = COND_STOP_ON_FALSE;
             sTransmitCmd.pNextOp = (rfc_radioOp_t *)&sTransmitRxAckCmd;
 
-            sTransmitRxAckCmd = cTransmitRxAckCmd;
+            //sTransmitRxAckCmd = cTransmitRxAckCmd;
             //memcpy(&sTransmitRxAckCmd, &cTransmitRxAckCmd, sizeof(cTransmitRxAckCmd));
 
             sTransmitRxAckCmd.seqNo = aPsdu[IEEE802154_DSN_OFFSET];
@@ -194,17 +191,19 @@ protected:
         /* turn on the clock line to the radio core */
         HWREGBITW(AON_RTC_BASE + AON_RTC_O_CTL, AON_RTC_CTL_RTC_UPD_EN_BITN) = 1;
         /* initialize the rat start command */
-        sStartRatCmd = cStartRatCmd;
+        //sStartRatCmd = cStartRatCmd;
         sStartRatCmd.pNextOp = (rfc_radioOp_t *)&sRadioSetupCmd;
         sStartRatCmd.rat0 = sRatOffset;
         /* initialize radio setup command */
-        sRadioSetupCmd = cRadioSetupCmd;
+        //sRadioSetupCmd = cRadioSetupCmd;
         /* initally set the radio tx power to the max */
         sRadioSetupCmd.txPower = sCurrentOutputPower->value;
         sRadioSetupCmd.pRegOverride = sIEEEOverrides;
         interruptsWereDisabled = IntMasterDisable();
+
         ////rfCoreApplyPatch();
         rf_patch_cpe_ieee_802_15_4();
+
         /* disable ram bus clocks */
         RFCDoorbellSendTo(CMDR_DIR_CMD_2BYTE(CC2652_RF_CMD0, 0));
         doorbellRet = (RFCDoorbellSendTo((uint32_t)&sStartRatCmd) & 0xFF);
@@ -229,9 +228,9 @@ protected:
 
         HWREGBITW(AON_RTC_BASE + AON_RTC_O_CTL, AON_RTC_CTL_RTC_UPD_EN_BITN) = 1;
         /* initialize the command to power down the frequency synth */
-        sFsPowerdownCmd = cFsPowerdownCmd;
+        //sFsPowerdownCmd = cFsPowerdownCmd;
         sFsPowerdownCmd.pNextOp = (rfc_radioOp_t *)&sStopRatCmd;
-        sStopRatCmd = cStopRatCmd;
+        //sStopRatCmd = cStopRatCmd;
         interruptsWereDisabled = IntMasterDisable();
         HWREG(RFC_DBELL_NONBUF_BASE + RFC_DBELL_O_RFCPEIFG) = ~IRQ_LAST_COMMAND_DONE;
         doorbellRet = (RFCDoorbellSendTo((uint32_t)&sFsPowerdownCmd) & 0xFF);
@@ -279,12 +278,13 @@ protected:
                 RadioFrame receiveFrame;
                 /* get the information appended to the end of the frame. This array access looks like it is a fencepost error, but the first byte is the number of bytes that follow. */
                 len = payload[0];
+                //DUMP("RX", payload, len);
                 crcCorr = (rfc_ieeeRxCorrCrc_t *)&payload[len];
                 rssi = payload[len - 1];
+
                 if (crcCorr->status.bCrcErr == 0 && (len - 2) < OT_RADIO_FRAME_MAX_SIZE)
                 {
                     receiveFrame.mLength = len;
-                    receiveFrame.mRAW = &(payload[0]); // WizIO
                     receiveFrame.mPsdu = &(payload[1]);
                     receiveFrame.mChannel = sReceiveCmd.channel;
                     receiveFrame.mInfo.mRxInfo.mRssi = rssi;
@@ -295,6 +295,7 @@ protected:
                 {
                     receiveError = ERROR_RADIO_FCS;
                 }
+
                 if ((receiveFrame.mPsdu[0] & IEEE802154_FRAME_TYPE_MASK) == IEEE802154_FRAME_TYPE_ACK)
                 {
                     if (sState == cc2652_stateTransmit && sTxCmdChainDone &&
@@ -302,19 +303,21 @@ protected:
                     {
                         /* we found the ACK packet */
                         sState = cc2652_stateReceive;
-                        CB_RadioTxDone(&sTransmitFrame, &receiveFrame, receiveError); //
+                        sTransmitFrame.txError = receiveError;
+                        CB_RadioTxDone(&sTransmitFrame, &receiveFrame, receiveError);
                         sTransmitError = ERROR_RADIO_NONE;
                         sTxCmdChainDone = false;
                     }
                 }
                 else
                 {
-                    //rfProcessReceiveDone(&receiveFrame, receiveError);
+                    // rfProcessReceiveDone(&receiveFrame, receiveError);
                     // TODO Set this flag only when the packet is really acknowledged with frame pending set.
                     // See https://github.com/openthread/openthread/pull/3785
                     receiveFrame.mInfo.mRxInfo.mAckedWithFramePending = true;
                     CB_RadioReceiveDone(&receiveFrame, receiveError);
                 }
+
                 curEntry->status = DATA_ENTRY_PENDING;
                 break;
             }
@@ -437,6 +440,8 @@ protected:
         HWREG(RFC_DBELL_NONBUF_BASE + RFC_DBELL_O_RFCPEIEN) = IRQ_LAST_COMMAND_DONE | IRQ_LAST_FG_COMMAND_DONE;
         IntRegister(INT_RFC_CPE_0, RFCCPE0IntHandler);
         IntRegister(INT_RFC_CPE_1, RFCCPE1IntHandler);
+        IntPrioritySet(INT_RFC_CPE_0, INT_PRI_LEVEL1);
+        IntPrioritySet(INT_RFC_CPE_1, INT_PRI_LEVEL1);
         IntPendClear(INT_RFC_CPE_0);
         IntPendClear(INT_RFC_CPE_1);
         IntEnable(INT_RFC_CPE_0);
@@ -597,7 +602,6 @@ private:
     void CB_RadioTxDone(RadioFrame *aFrame, RadioFrame *aAckFrame, RadioError aError)
     {
         //RADIO_PRINTF("[RADIO] %s( %d )\n", __func__, (int)aError);
-        aFrame->txError = aError;
         if (cbTxDone)
             cbTxDone(aFrame, aAckFrame, aError);
     }
@@ -630,8 +634,12 @@ private:
         return error;
     }
 
+    /* frame must be getTransmitBuffer() */
     RadioError RadioTransmit(RadioFrame *aFrame)
     {
+        if (aFrame != &sTransmitFrame)
+            return ERROR_RADIO_INVALID_PARAM;
+
         //RADIO_PRINTF("[RADIO] %s()\n", __func__);
         RadioError error = ERROR_RADIO_BUSY;
         if (sState == cc2652_stateReceive)
@@ -891,7 +899,7 @@ private:
     {
         //void cc2652RadioInit(void)
         ////void rfCoreInitReceiveParams(void)
-        memcpy(&sReceiveCmd, &cReceiveCmd, sizeof(rfc_CMD_IEEE_RX_t));
+        memcpy(&sReceiveCmd, &c_ReceiveCmd, sizeof(rfc_CMD_IEEE_RX_t));
         sReceiveCmd.pRxQ = &sRxDataQueue;
         sReceiveCmd.pOutput = &sRfStats;
         sReceiveCmd.numShortEntries = CC2652_SHORTADD_SRC_MATCH_NUM;
@@ -899,6 +907,15 @@ private:
         sReceiveCmd.numExtEntries = CC2652_EXTADD_SRC_MATCH_NUM;
         sReceiveCmd.pExtEntryList = (uint32_t *)&sSrcMatchExtData;
         sRatOffset = 0;
+
+        memcpy(&sCsmacaBackoffCmd, &c_CsmacaBackoffCmd, sizeof(rfc_CMD_IEEE_CSMA_t));
+        memcpy(&sTransmitCmd, &c_TransmitCmd, sizeof(rfc_CMD_IEEE_TX_t));
+        memcpy(&sTransmitRxAckCmd, &c_TransmitRxAckCmd, sizeof(rfc_CMD_IEEE_RX_ACK_t));
+        memcpy(&sRadioSetupCmd, &c_RadioSetupCmd, sizeof(rfc_CMD_RADIO_SETUP_t));
+        memcpy(&sFsPowerdownCmd, &c_FsPowerdownCmd, sizeof(rfc_CMD_FS_POWERDOWN_t));
+        memcpy(&sStartRatCmd, &c_StartRatCmd, sizeof(rfc_CMD_SYNC_START_RAT_t));
+        memcpy(&sStopRatCmd, &c_StopRatCmd, sizeof(rfc_CMD_SYNC_STOP_RAT_t));
+        memcpy(&sEdScanCmd, &c_EdScanCmd, sizeof(rfc_CMD_IEEE_ED_SCAN_t));
 
         cbTxStarted = NULL;
         cbTxDone = NULL;
@@ -935,7 +952,8 @@ public:
         if (false == RadioIsEnabled())
         {
             RadioSetPanId(_PanID);
-            RadioSetShortAddress(_Address);
+            if (-1 != _Address)
+                RadioSetShortAddress(_Address);
             if (ERROR_RADIO_NONE == (res = RadioSetTransmitPower(_Power)))
                 if (ERROR_RADIO_NONE == (res = RadioEnable())) // power on
                     res = RadioReceive(_Channel);              // goto rx mode
@@ -969,6 +987,7 @@ public:
             {
                 /* we are not looking for an ACK packet, or failed */
                 sState = cc2652_stateReceive;
+                sTransmitFrame.txError = sTransmitError;
                 CB_RadioTxDone(&sTransmitFrame, NULL, sTransmitError); //
             }
             sTransmitError = ERROR_RADIO_NONE;
@@ -1023,7 +1042,7 @@ public:
         return res;
     }
 
-    void setExtendedAddress(uint8_t *addr = NULL /* from rom */)
+    void setExtendedAddress(uint8_t *addr = NULL /* NULL - from rom */)
     {
         if (addr)
             memcpy(ExtendedAddress, addr, OT_EXT_ADDRESS_SIZE);
@@ -1051,36 +1070,40 @@ public:
 
     inline RadioFrame *getTransmitBuffer() { return &sTransmitFrame; }
 
+    /* frame must be getTransmitBuffer() */
     inline RadioError transmit(RadioFrame *aFrame)
     {
-        //RADIO_PRINTF("[RADIO] %s()\n", __func__);
         return (aFrame) ? RadioTransmit(aFrame) : ERROR_RADIO_INVALID_PARAM;
     }
 
-    RadioError transmitWait(RadioFrame *aFrame, uint32_t timeout_ms = 1000)
+    /* frame must be getTransmitBuffer() */
+    RadioError transmitWait(RadioFrame *aFrame, uint32_t timeout_ms = 5000)
     {
         RadioError res = ERROR_RADIO_INVALID_PARAM;
         if (aFrame)
         {
+            aFrame->txError = res = ERROR_RADIO_TIMEOUT;
             if (ERROR_RADIO_NONE == (res = transmit(aFrame)))
             {
-                aFrame->txError = res = ERROR_RADIO_TIMEOUT;
                 uint32_t start = millis();
                 do
                 {
+                    delay(100);
                     LRadio::process();
                     if (ERROR_RADIO_TIMEOUT != (res = aFrame->txError))
+                    {
                         break; // done, return result
+                    }
+
                 } while (millis() - start < timeout_ms);
+                aFrame->txError = ERROR_RADIO_NONE;
             }
         }
-        //RADIO_PRINTF("[RADIO] %s( %d )\n", __func__, (int)res);
         return res;
     }
 
-    RadioError write(uint8_t *buffer, uint32_t size, uint32_t timeout_ms = 2000)
+    RadioError write(uint8_t *buffer, uint32_t size, uint32_t timeout_ms = 5000)
     {
-        //RADIO_PRINTF("[RADIO] %s[ %d ]\n", __func__, (int)timeout_ms);
         RadioError res = ERROR_RADIO_INVALID_PARAM;
         if (buffer && size)
         {
@@ -1091,10 +1114,26 @@ public:
             else
                 res = transmit(&sTransmitFrame);
         }
-        //RADIO_PRINTF("[RADIO] %s( %d )\n", __func__, (int)res);
         return res;
     }
 
+    /* not tested */
+    bool available(void)
+    {
+        rfc_dataEntryGeneral_t *curEntry, *startEntry;
+        startEntry = (rfc_dataEntryGeneral_t *)sRxDataQueue.pCurrEntry;
+        curEntry = startEntry;
+        /* loop through receive queue */
+        do
+        {
+            if (curEntry->status == DATA_ENTRY_FINISHED)
+                return true;
+            curEntry = (rfc_dataEntryGeneral_t *)(curEntry->pNextEntry);
+        } while (curEntry != startEntry);
+        return false;
+    }
+
+    /* not tested */
     RadioError scanEnergy(uint8_t aChannel, uint16_t aDurrationMs, HandleEnergyScanDone callback = NULL)
     {
         cbScDone = callback;

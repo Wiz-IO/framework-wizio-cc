@@ -39,6 +39,7 @@ extern "C"
 #include <math.h>
 #include <time.h>
 
+#include <driverlib/rom.h>
 #include <driverlib/cpu.h>
 #include <driverlib/prcm.h>
 #include <driverlib/ioc.h>

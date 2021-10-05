@@ -1,6 +1,6 @@
 #include "LRADIO_DEF.h"
 
-const rfc_CMD_IEEE_ED_SCAN_t cEdScanCmd =
+const rfc_CMD_IEEE_ED_SCAN_t c_EdScanCmd =
     {
         .commandNo = CMD_IEEE_ED_SCAN,
         .startTrigger =
@@ -25,7 +25,7 @@ const rfc_CMD_IEEE_ED_SCAN_t cEdScanCmd =
         },
 };
 
-const rfc_CMD_IEEE_CSMA_t cCsmacaBackoffCmd =
+const rfc_CMD_IEEE_CSMA_t c_CsmacaBackoffCmd =
     {
         .commandNo = CMD_IEEE_CSMA,
         .status = IDLE,
@@ -52,7 +52,7 @@ const rfc_CMD_IEEE_CSMA_t cCsmacaBackoffCmd =
         .endTime = 0x00000000,
 };
 
-const rfc_CMD_IEEE_TX_t cTransmitCmd =
+const rfc_CMD_IEEE_TX_t c_TransmitCmd =
     {
         .commandNo = CMD_IEEE_TX,
         .status = IDLE,
@@ -66,7 +66,7 @@ const rfc_CMD_IEEE_TX_t cTransmitCmd =
         .pNextOp = NULL,
 };
 
-const rfc_CMD_IEEE_RX_ACK_t cTransmitRxAckCmd =
+const rfc_CMD_IEEE_RX_ACK_t c_TransmitRxAckCmd =
     {
         .commandNo = CMD_IEEE_RX_ACK,
         .status = IDLE,
@@ -87,7 +87,7 @@ const rfc_CMD_IEEE_RX_ACK_t cTransmitRxAckCmd =
         .endTime = ((IEEE802154_MAC_ACK_WAIT_DURATION * CC2652_RAT_TICKS_PER_SEC) / IEEE802154_SYMBOLS_PER_SEC),
 };
 
-const rfc_CMD_IEEE_RX_t cReceiveCmd =
+const rfc_CMD_IEEE_RX_t c_ReceiveCmd =
     {
         .commandNo = CMD_IEEE_RX,
         .status = IDLE,
@@ -148,7 +148,7 @@ const rfc_CMD_IEEE_RX_t cReceiveCmd =
         .endTime = 0u,
 };
 
-const rfc_CMD_SYNC_START_RAT_t cStartRatCmd =
+const rfc_CMD_SYNC_START_RAT_t c_StartRatCmd =
     {
         .commandNo = CMD_SYNC_START_RAT,
         .startTrigger =
@@ -160,7 +160,7 @@ const rfc_CMD_SYNC_START_RAT_t cStartRatCmd =
         },
 };
 
-const rfc_CMD_RADIO_SETUP_t cRadioSetupCmd =
+const rfc_CMD_RADIO_SETUP_t c_RadioSetupCmd =
     {
         .commandNo = CMD_RADIO_SETUP,
         .startTrigger =
@@ -173,7 +173,7 @@ const rfc_CMD_RADIO_SETUP_t cRadioSetupCmd =
         .mode = 1, // IEEE 802.15.4 mode
 };
 
-const rfc_CMD_FS_POWERDOWN_t cFsPowerdownCmd =
+const rfc_CMD_FS_POWERDOWN_t c_FsPowerdownCmd =
     {
         .commandNo = CMD_FS_POWERDOWN,
         .startTrigger =
@@ -185,7 +185,7 @@ const rfc_CMD_FS_POWERDOWN_t cFsPowerdownCmd =
         },
 };
 
-const rfc_CMD_SYNC_STOP_RAT_t cStopRatCmd =
+const rfc_CMD_SYNC_STOP_RAT_t c_StopRatCmd =
     {
         .commandNo = CMD_SYNC_STOP_RAT,
         .startTrigger =

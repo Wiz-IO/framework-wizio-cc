@@ -9,7 +9,7 @@ global_env = DefaultEnvironment()
 
 src_filter_default = [
     '+<*>', 
-    '+<%s*>' % join(env.ti, 'cc13x2_cc26x2', 'rf_patches', 'rf_patch_cpe_ieee_802_15_4.c'),
+    '+<%s*>' % join(env.DEVICE, 'rf_patches', 'rf_patch_cpe_ieee_802_15_4.c'),
 ]
 env.Replace(SRC_FILTER = src_filter_default)
 
