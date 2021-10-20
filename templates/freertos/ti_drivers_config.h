@@ -6,8 +6,6 @@ extern "C"
 {
 #endif
 
-#define LED 7
-
 #include <stdint.h>
 
 #include <ti/devices/cc13x2_cc26x2/inc/hw_memmap.h>

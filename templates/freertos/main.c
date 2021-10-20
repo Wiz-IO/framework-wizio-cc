@@ -35,10 +35,15 @@ void setup(void)
     UARTConfigSetExpClk(UART0_BASE, SysCtrlClockGet(), 115200, UART_CONFIG_WLEN_8 | UART_CONFIG_STOP_ONE | UART_CONFIG_PAR_NONE);
     UARTEnable(UART0_BASE);
     retarget_uart(UART0_BASE); // use stdio printf
+    
     printf("[APP] Hello World\n");
+
     powerOn(PRCM_DOMAIN_PERIPH, PRCM_PERIPH_GPIO, 0, 0);           // power on gpio
     IOCPortConfigureSet(LED_GREEN, IOC_PORT_GPIO, IOC_STD_OUTPUT); // pin as gpio
     GPIO_setOutputEnableDio(LED_GREEN, GPIO_OUTPUT_ENABLE);        // pin dir output
+    powerOn(PRCM_DOMAIN_PERIPH, PRCM_PERIPH_GPIO, 0, 0);           // power on gpio
+    IOCPortConfigureSet(LED_RED, IOC_PORT_GPIO, IOC_STD_OUTPUT);   // pin as gpio
+    GPIO_setOutputEnableDio(LED_RED, GPIO_OUTPUT_ENABLE);          // pin dir output
 }
 
 void loop(void *arg)
